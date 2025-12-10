@@ -1868,13 +1868,13 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - rnmapbox-maps (10.2.8):
+  - rnmapbox-maps (10.1.35):
     - MapboxMaps (= 10.16.0)
     - React
     - React-Core
-    - rnmapbox-maps/DynamicLibrary (= 10.2.8)
+    - rnmapbox-maps/DynamicLibrary (= 10.1.35)
     - Turf
-  - rnmapbox-maps/DynamicLibrary (10.2.8):
+  - rnmapbox-maps/DynamicLibrary (10.1.35):
     - hermes-engine
     - MapboxMaps (= 10.16.0)
     - RCTRequired
@@ -2561,7 +2561,7 @@ SPEC CHECKSUMS:
   ReactNativeDependencies: 71ce9c28beb282aa720ea7b46980fff9669f428a
   RNCAsyncStorage: 3a4f5e2777dae1688b781a487923a08569e27fe4
   RNGestureHandler: 2914750df066d89bf9d8f48a10ad5f0051108ac3
-  rnmapbox-maps: 6b7949d2bc0b52d6dcd3bc8104efaa466e9ebe5e
+  rnmapbox-maps: 67b15251510e5b5872667331044237785785165c
   RNReanimated: 1442a577e066e662f0ce1cd1864a65c8e547aee0
   RNScreens: d8d6f1792f6e7ac12b0190d33d8d390efc0c1845
   RNSVG: 31d6639663c249b7d5abc9728dde2041eb2a3c34
@@ -2573,6 +2573,6 @@ SPEC CHECKSUMS:
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
   Yoga: 5934998fbeaef7845dbf698f698518695ab4cd1a
 
-PODFILE CHECKSUM: b853a66376be1df3b7afbb7b553a836f3ad8c7be
+PODFILE CHECKSUM: 6e0e3c12ab135c2e9b2f0953e738eac2d8c2a7ce
 
 COCOAPODS: 1.16.2
