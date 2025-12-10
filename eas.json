@@ -32,26 +32,16 @@
     },
     "production": {
       "autoIncrement": true,
+      "distribution": "store",
+      "ios": {
+        "simulator": false
+      },
       "android": {
         "buildType": "app-bundle"
-      },
-      "env": {
-        "EXPO_PUBLIC_SUPABASE_URL": "https://your-prod-project.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "your-prod-anon-key"
       }
     }
   },
   "submit": {
-    "production": {
-      "android": {
-        "serviceAccountKeyPath": "./play-store-key.json",
-        "track": "production"
-      },
-      "ios": {
-        "appleId": "your-apple-id@email.com",
-        "ascAppId": "your-app-store-connect-app-id",
-        "appleTeamId": "YOUR_TEAM_ID"
-      }
-    }
+    "production": {}
   }
 }
