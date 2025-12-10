@@ -22,7 +22,7 @@ prepare_react_native_project!
 
 # @generated begin @rnmapbox/maps-rnmapboxmapsimpl - expo prebuild (DO NOT MODIFY) sync-6c917db09b787f3f17acac3d6904a62ee1941cbf
 $RNMapboxMapsDownloadToken = 'sk.eyJ1Ijoia291cnRhcHAiLCJhIjoiY21pemc2dmV5MHA5NjNnb2Nud3psbzdjYSJ9.B14naws6fRjOMwAdOhX51Q'
-$RNMapboxMapsVersion = '10.16.0'
+$RNMapboxMapsVersion = '11.8.0'
 # @generated end @rnmapbox/maps-rnmapboxmapsimpl
 target 'Kourt' do
   use_expo_modules!
@@ -79,11 +79,5 @@ target 'Kourt' do
         config.build_settings['ENABLE_BITCODE'] = "NO"
       end
     end
-
-    # Automated Error Correction: Persist Mapbox Compiler Fix
-    puts "Patching MapboxMaps ViewAnnotationManager.swift..."
-    system("sed -i '' '67s/^        idsByView/        return [:] \\/\\/ idsByView/' Pods/MapboxMaps/Sources/MapboxMaps/Annotations/ViewAnnotationManager.swift")
-    system("sed -i '' '68s/^            try/            \\/\\/ try/' Pods/MapboxMaps/Sources/MapboxMaps/Annotations/ViewAnnotationManager.swift")
-    system("sed -i '' '69s/^        }/        \\/\\/ }/' Pods/MapboxMaps/Sources/MapboxMaps/Annotations/ViewAnnotationManager.swift")
   end
 end
