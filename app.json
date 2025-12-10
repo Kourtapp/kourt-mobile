@@ -1,0 +1,92 @@
+{
+  "expo": {
+    "name": "Kourt",
+    "slug": "kourt-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "kourt",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.kourt.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Kourt usa sua localização para mostrar quadras próximas a você.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Kourt usa sua localização para mostrar quadras próximas a você.",
+        "NSCameraUsageDescription": "Kourt usa a câmera para adicionar fotos de partidas e perfil.",
+        "NSPhotoLibraryUsageDescription": "Kourt acessa suas fotos para compartilhar momentos e atualizar seu perfil.",
+        "NSPhotoLibraryAddUsageDescription": "Kourt salva fotos de suas partidas.",
+        "MBXAccessToken": "pk.eyJ1Ijoia291cnRhcHAiLCJhIjoiY21panRpdzB3MTg1NDNmcHh1Nm93bzZ6biJ9.picIGTj8Qdw4yDgx1JCMBw",
+        "NSAnalyticsCollectionEnabled": true,
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#000000"
+      },
+      "package": "com.kourt.app",
+      "versionCode": 1,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Kourt usa sua localização para mostrar quadras próximas."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Kourt acessa suas fotos para compartilhar momentos.",
+          "cameraPermission": "Kourt usa a câmera para adicionar fotos."
+        }
+      ],
+      "expo-secure-store",
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsDownloadToken": "sk.eyJ1Ijoia291cnRhcHAiLCJhIjoiY21pemc2dmV5MHA5NjNnb2Nud3psbzdjYSJ9.B14naws6fRjOMwAdOhX51Q",
+          "RNMapboxMapsVersion": "10.16.0"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id-here"
+      },
+      "supabaseUrl": "${EXPO_PUBLIC_SUPABASE_URL}",
+      "supabaseAnonKey": "${EXPO_PUBLIC_SUPABASE_ANON_KEY}"
+    },
+    "owner": "kourt",
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
