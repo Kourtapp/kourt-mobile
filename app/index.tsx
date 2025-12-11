@@ -1,12 +1,16 @@
 import { Redirect } from 'expo-router';
-import { useAuthStore } from '../stores/authStore';
+// import { useAuthStore } from '../stores/authStore';
 
 export default function Index() {
-    const { session } = useAuthStore();
+    // Temporarily bypass auth for development
+    // const { session } = useAuthStore();
 
-    if (session) {
-        return <Redirect href="/(tabs)" />;
-    }
+    // Always go to home for now
+    return <Redirect href="/(tabs)" />;
 
-    return <Redirect href="/(auth)/login" />;
+    // Original auth logic:
+    // if (session) {
+    //     return <Redirect href="/(tabs)" />;
+    // }
+    // return <Redirect href="/(auth)/login" />;
 }

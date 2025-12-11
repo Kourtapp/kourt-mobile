@@ -1,9 +1,9 @@
 // App Colors
 export const Colors = {
   // Primary brand color
-  primary: '#000000',
-  primaryLight: '#333333',
-  primaryDark: '#000000',
+  primary: '#1F2937',
+  primaryLight: '#374151',
+  primaryDark: '#111827',
 
   // Secondary
   secondary: '#FF6B00',
@@ -47,7 +47,7 @@ export const Colors = {
   border: '#E5E5E5',
 
   // Text
-  text: '#000000',
+  text: '#1F2937',
   textSecondary: '#525252',
   textMuted: '#A3A3A3',
   textInverse: '#FFFFFF',

@@ -30,7 +30,7 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>kourt</string>
-          <string>com.kourt.app</string>
+          <string>com.bruno.kourt.app</string>
         </array>
       </dict>
     </array>

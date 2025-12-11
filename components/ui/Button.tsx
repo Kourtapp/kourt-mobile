@@ -32,7 +32,7 @@ export function Button({
   const baseStyles = 'flex-row items-center justify-center rounded-xl';
 
   const variantStyles = {
-    primary: 'bg-black',
+    primary: 'bg-[#1F2937]',
     secondary: 'bg-neutral-100',
     outline: 'bg-transparent border border-neutral-300',
     ghost: 'bg-transparent',

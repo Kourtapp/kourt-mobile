@@ -79,6 +79,17 @@ export default function RootLayout() {
                   }}
                 />
 
+                {/* Menu+ Modal (Bottom Sheet) */}
+                <Stack.Screen
+                  name="plus-modal"
+                  options={{
+                    presentation: 'transparentModal',
+                    animation: 'fade',
+                    headerShown: false,
+                    contentStyle: { backgroundColor: 'transparent' },
+                  }}
+                />
+
                 {/* Other screens */}
                 <Stack.Screen name="messages" />
                 <Stack.Screen name="chat/[id]" />

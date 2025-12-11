@@ -50,11 +50,11 @@ export default function MapScreen() {
 
     const distance = location
       ? calculateDistance(
-          location.latitude,
-          location.longitude,
-          coordinates[1],
-          coordinates[0]
-        )
+        location.latitude,
+        location.longitude,
+        coordinates[1],
+        coordinates[0]
+      )
       : court.distance ?? 0;
 
     return {
@@ -445,6 +445,7 @@ export default function MapScreen() {
         onClose={() => setShowFilters(false)}
         onApply={handleFilterChange}
         initialFilters={{}}
+        resultsCount={filteredCourts.length}
       />
     </View>
   );

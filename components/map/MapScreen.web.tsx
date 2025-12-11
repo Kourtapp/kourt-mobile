@@ -13,7 +13,7 @@ import { MOCK_COURTS, SPORTS_MAP } from '../../mocks/data';
 
 type SportFilter = string | null;
 
-export default function MapScreenWeb() {
+export default function MapScreen() {
   const router = useRouter();
   const { location } = useLocation();
   const [sportFilter, setSportFilter] = useState<SportFilter>(null);

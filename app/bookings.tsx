@@ -14,9 +14,9 @@ import {
   MapPin,
   Plus,
 } from 'lucide-react-native';
-import { Colors, SPORTS_CONFIG, BOOKING_STATUS } from '../../constants';
-import { MOCK_BOOKINGS, MockBooking } from '../../mocks/data';
-import { Avatar, Badge, Card, EmptyState, Button } from '../../components/ui';
+import { Colors, SPORTS_CONFIG, BOOKING_STATUS } from '../constants';
+import { MOCK_BOOKINGS, MockBooking } from '../mocks/data';
+import { Avatar, Badge, Card, EmptyState, Button } from '../components/ui';
 
 type TabType = 'upcoming' | 'past';
 
@@ -161,28 +161,24 @@ export default function BookingsScreen() {
         <View className="flex-row bg-neutral-100 rounded-xl p-1">
           <Pressable
             onPress={() => setActiveTab('upcoming')}
-            className={`flex-1 py-2 rounded-lg ${
-              activeTab === 'upcoming' ? 'bg-white' : ''
-            }`}
+            className={`flex-1 py-2 rounded-lg ${activeTab === 'upcoming' ? 'bg-white' : ''
+              }`}
           >
             <Text
-              className={`text-center font-medium ${
-                activeTab === 'upcoming' ? 'text-black' : 'text-neutral-500'
-              }`}
+              className={`text-center font-medium ${activeTab === 'upcoming' ? 'text-black' : 'text-neutral-500'
+                }`}
             >
               Próximas
             </Text>
           </Pressable>
           <Pressable
             onPress={() => setActiveTab('past')}
-            className={`flex-1 py-2 rounded-lg ${
-              activeTab === 'past' ? 'bg-white' : ''
-            }`}
+            className={`flex-1 py-2 rounded-lg ${activeTab === 'past' ? 'bg-white' : ''
+              }`}
           >
             <Text
-              className={`text-center font-medium ${
-                activeTab === 'past' ? 'text-black' : 'text-neutral-500'
-              }`}
+              className={`text-center font-medium ${activeTab === 'past' ? 'text-black' : 'text-neutral-500'
+                }`}
             >
               Histórico
             </Text>

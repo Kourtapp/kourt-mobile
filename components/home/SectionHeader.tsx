@@ -21,20 +21,20 @@ export function SectionHeader({
             <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-2">
                     {icon && (
-                        <MaterialIcons name={icon as any} size={18} color="#000" />
+                        <MaterialIcons name={icon as any} size={28} color="#000" />
                     )}
-                    <Text className="text-base font-bold text-black">{title}</Text>
+                    <Text className="text-2xl font-bold text-black">{title}</Text>
                 </View>
 
                 {onActionPress && (
                     <Pressable onPress={onActionPress}>
-                        <Text className="text-sm text-neutral-500">{actionText}</Text>
+                        <Text className="text-sm text-blue-600 font-medium">{actionText}</Text>
                     </Pressable>
                 )}
             </View>
 
             {subtitle && (
-                <Text className="text-xs text-neutral-500 mt-1">{subtitle}</Text>
+                <Text className="text-sm text-neutral-500 mt-1">{subtitle}</Text>
             )}
         </View>
     );
