@@ -204,7 +204,7 @@ export function ActionSheet({
         )}
 
         <View className="gap-2">
-          {options.map((option, index) => (
+          {(options || []).map((option, index) => (
             <Pressable
               key={index}
               onPress={() => {

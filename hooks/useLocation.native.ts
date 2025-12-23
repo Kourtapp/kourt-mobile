@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Platform } from 'react-native';
 import * as Location from 'expo-location';
+import { logger } from '../utils/logger';
 
 export interface LocationData {
   latitude: number;
@@ -35,7 +36,7 @@ export function useLocation(): UseLocationResult {
       setPermissionStatus(status);
       return status === 'granted';
     } catch (err) {
-      console.error('Error requesting location permission:', err);
+      logger.error('[useLocation] Error requesting location permission:', err);
       return false;
     }
   }, []);
@@ -74,7 +75,7 @@ export function useLocation(): UseLocationResult {
         accuracy: position.coords.accuracy ?? undefined,
       });
     } catch (err) {
-      console.error('Error getting location:', err);
+      logger.error('[useLocation] Error getting location:', err);
       setError('Não foi possível obter sua localização');
       setLocation(DEFAULT_LOCATION);
     } finally {
@@ -113,7 +114,7 @@ export function useWatchLocation(): UseLocationResult & { watching: boolean } {
       setPermissionStatus(status);
       return status === 'granted';
     } catch (err) {
-      console.error('Error requesting location permission:', err);
+      logger.error('[useLocation] Error requesting location permission:', err);
       return false;
     }
   }, []);
@@ -130,7 +131,7 @@ export function useWatchLocation(): UseLocationResult & { watching: boolean } {
         accuracy: position.coords.accuracy ?? undefined,
       });
     } catch (err) {
-      console.error('Error refreshing location:', err);
+      logger.error('[useLocation] Error refreshing location:', err);
     }
   }, []);
 
@@ -182,7 +183,7 @@ export function useWatchLocation(): UseLocationResult & { watching: boolean } {
 
         setWatching(true);
       } catch (err) {
-        console.error('Error watching location:', err);
+        logger.error('[useLocation] Error watching location:', err);
         setError('Não foi possível monitorar sua localização');
         setLocation(DEFAULT_LOCATION);
         setLoading(false);

@@ -1,0 +1,41 @@
+appId: com.kourt.app
+---
+# Simple test - Start directly at onboarding without login
+- launchApp:
+    clearState: true
+
+# Login as Onboarding User
+- tapOn:
+    id: "email-input"
+- inputText: "user_onboarding@kourt.app"
+- hideKeyboard
+- tapOn:
+    id: "password-input"
+- inputText: "password123"
+- hideKeyboard
+- tapOn:
+    id: "login-button"
+
+# Wait for Welcome Screen
+- extendedWaitUntil:
+    visible: "Bem-vindo ao Kourt!"
+    timeout: 10000
+
+# Take a screenshot here for debugging
+- takeScreenshot: "after-login-welcome-screen"
+
+# Tap Start button
+- tapOn:
+    id: "start-onboarding-button"
+
+# Wait a bit for navigation
+- waitForAnimationToEnd
+
+# Take another screenshot
+- takeScreenshot: "after-clicking-start"
+
+# Now check if beach-tennis exists
+- extendedWaitUntil:
+    visible:
+      id: "beach-tennis"
+    timeout: 10000

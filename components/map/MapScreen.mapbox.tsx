@@ -14,7 +14,8 @@ import { Colors, DEFAULT_LOCATION } from '../../constants';
 import { Badge, FilterSheet, SearchInput } from '../../components/ui';
 import type { FilterOptions } from '../../components/ui';
 import { useLocation, formatDistance, calculateDistance } from '../../hooks/useLocation';
-import { MOCK_COURTS, SPORTS_MAP } from '../../mocks/data';
+import { useCourts } from '../../hooks/useCourts';
+import { SPORTS_MAP } from '../../constants/sports';
 import MapboxGL from '@rnmapbox/maps';
 
 // Initialize Mapbox
@@ -28,6 +29,7 @@ type SportFilter = string | null;
 export default function MapScreen() {
   const router = useRouter();
   const { location, requestPermission } = useLocation();
+  const { courts } = useCourts();
   const [viewMode, setViewMode] = useState<ViewMode>('map');
   const [selectedCourt, setSelectedCourt] = useState<string | null>(null);
   const [sportFilter, setSportFilter] = useState<SportFilter>(null);
@@ -38,24 +40,25 @@ export default function MapScreen() {
   const mapRef = useRef<MapboxGL.MapView>(null);
   const [, setMapReady] = useState(false);
 
-  const defaultCenter: [number, number] = [DEFAULT_LOCATION.longitude, DEFAULT_LOCATION.latitude];
+  // Use user's location if available, otherwise default to São Paulo
+  const mapCenter: [number, number] = location
+    ? [location.longitude, location.latitude]
+    : [DEFAULT_LOCATION.longitude, DEFAULT_LOCATION.latitude];
 
-  const courtsWithCoordinates = MOCK_COURTS.map((court) => {
-    const latOffset = (Math.random() - 0.5) * 0.08;
-    const lngOffset = (Math.random() - 0.5) * 0.08;
-    const coordinates: [number, number] = [
-      DEFAULT_LOCATION.longitude + lngOffset,
-      DEFAULT_LOCATION.latitude + latOffset,
-    ];
+  const courtsWithCoordinates = courts.map((court) => {
+    // Use actual court coordinates if available
+    const coordinates: [number, number] = court.longitude && court.latitude
+      ? [court.longitude, court.latitude]
+      : [mapCenter[0] + (Math.random() - 0.5) * 0.08, mapCenter[1] + (Math.random() - 0.5) * 0.08];
 
     const distance = location
       ? calculateDistance(
-          location.latitude,
-          location.longitude,
-          coordinates[1],
-          coordinates[0]
-        )
-      : court.distance ?? 0;
+        location.latitude,
+        location.longitude,
+        coordinates[1],
+        coordinates[0]
+      )
+      : 0;
 
     return {
       ...court,
@@ -65,12 +68,23 @@ export default function MapScreen() {
   }).sort((a, b) => a.calculatedDistance - b.calculatedDistance);
 
   const filteredCourts = courtsWithCoordinates.filter((court) => {
-    const matchesSport = !sportFilter || court.sports.includes(sportFilter);
+    const matchesSport = !sportFilter || court.sport === sportFilter || court.sport?.toLowerCase().includes(sportFilter.toLowerCase());
     const matchesSearch = !searchQuery ||
       court.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      court.city.toLowerCase().includes(searchQuery.toLowerCase());
+      (court.city && court.city.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesSport && matchesSearch;
   });
+
+  // Center map on user location when it becomes available
+  useEffect(() => {
+    if (location && cameraRef.current) {
+      cameraRef.current.setCamera({
+        centerCoordinate: [location.longitude, location.latitude],
+        zoomLevel: 13,
+        animationDuration: 1000,
+      });
+    }
+  }, [location]);
 
   useEffect(() => {
     if (selectedCourt) {
@@ -166,7 +180,7 @@ export default function MapScreen() {
                 color: isSelected ? '#fff' : '#000',
               }}
             >
-              R$ {court.price_per_hour}
+              {court.price ? `R$ ${court.price}` : 'Grátis'}
             </Text>
           </View>
           <View
@@ -204,8 +218,8 @@ export default function MapScreen() {
       >
         <MapboxGL.Camera
           ref={cameraRef}
-          centerCoordinate={defaultCenter}
-          zoomLevel={12}
+          centerCoordinate={mapCenter}
+          zoomLevel={13}
           animationMode="flyTo"
           animationDuration={500}
         />
@@ -283,7 +297,7 @@ export default function MapScreen() {
               <View className="flex-row items-center mt-1">
                 <MapPin size={14} color={Colors.neutral[500]} />
                 <Text className="text-sm text-neutral-500 ml-1">
-                  {formatDistance(selectedCourtData.calculatedDistance)}
+                  {formatDistance(Number(selectedCourtData.calculatedDistance) || 0)}
                 </Text>
                 <Text className="text-neutral-300 mx-2">•</Text>
                 <Star size={14} fill={Colors.warning} color={Colors.warning} />
@@ -293,14 +307,12 @@ export default function MapScreen() {
               </View>
               <View className="flex-row items-center justify-between mt-3">
                 <View className="flex-row gap-2">
-                  {selectedCourtData.sports.slice(0, 2).map((sport) => (
-                    <Badge key={sport} variant="default">
-                      {SPORTS_MAP[sport]?.emoji} {SPORTS_MAP[sport]?.name}
-                    </Badge>
-                  ))}
+                  <Badge variant="default">
+                    {SPORTS_MAP[selectedCourtData.sport]?.emoji || '🏸'} {SPORTS_MAP[selectedCourtData.sport]?.name || selectedCourtData.sport}
+                  </Badge>
                 </View>
                 <Text className="font-bold text-black">
-                  R$ {selectedCourtData.price_per_hour}/h
+                  {selectedCourtData.price ? `R$ ${selectedCourtData.price}/h` : 'Grátis'}
                 </Text>
               </View>
             </View>
@@ -333,25 +345,23 @@ export default function MapScreen() {
                   <View className="flex-row items-center mt-1">
                     <MapPin size={14} color={Colors.neutral[500]} />
                     <Text className="text-sm text-neutral-500 ml-1">
-                      {formatDistance(court.calculatedDistance)}
+                      {formatDistance(Number(court.calculatedDistance) || 0)}
                     </Text>
                     <Text className="text-neutral-300 mx-2">•</Text>
                     <Star size={14} fill={Colors.warning} color={Colors.warning} />
                     <Text className="text-sm text-neutral-600 ml-1">
-                      {court.rating} ({court.review_count})
+                      {court.rating}
                     </Text>
                   </View>
                 </View>
                 <Text className="font-bold text-black text-lg">
-                  R$ {court.price_per_hour}/h
+                  {court.price ? `R$ ${court.price}/h` : 'Grátis'}
                 </Text>
               </View>
               <View className="flex-row gap-2 mt-3">
-                {court.sports.map((sport) => (
-                  <Badge key={sport} variant="default">
-                    {SPORTS_MAP[sport]?.emoji} {SPORTS_MAP[sport]?.name}
-                  </Badge>
-                ))}
+                <Badge variant="default">
+                  {SPORTS_MAP[court.sport]?.emoji || '🏸'} {SPORTS_MAP[court.sport]?.name || court.sport}
+                </Badge>
               </View>
             </View>
           </Pressable>
@@ -445,6 +455,7 @@ export default function MapScreen() {
         onClose={() => setShowFilters(false)}
         onApply={handleFilterChange}
         initialFilters={{}}
+        resultsCount={filteredCourts.length}
       />
     </View>
   );

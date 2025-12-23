@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, Pressable, Image } from 'react-native';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import { MapPin, Star, Heart } from 'lucide-react-native';
 import { Colors } from '../../constants';
 import { Badge } from './Badge';
-import { SPORTS_MAP } from '../../mocks/data';
+import { SPORTS_MAP } from '../../constants/sports';
 
 interface CourtCardProps {
   id: string;
@@ -35,8 +35,6 @@ export function CourtCard({
   onFavoritePress,
   variant = 'default',
 }: CourtCardProps) {
-  const router = useRouter();
-
   const handlePress = () => {
     router.push(`/court/${id}`);
   };

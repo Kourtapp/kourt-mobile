@@ -1,0 +1,89 @@
+# Test: Complete Onboarding Flow
+# Tests the full onboarding process after registration
+
+appId: com.kourt.app
+
+---
+
+# This test assumes user just registered and is redirected to onboarding
+# For testing purposes, we'll simulate the onboarding screens
+
+# Step 1: Sport Selection
+- assertVisible: "Qual esporte você joga?"
+- assertVisible: "Selecione todos os esportes que você pratica"
+- assertVisible: "Passo 1 de 5"
+
+# Verify sports are displayed
+- assertVisible: "Beach Tennis"
+- assertVisible: "Padel"
+- assertVisible: "Tennis"
+
+# Select a sport
+- tapOn: "Beach Tennis"
+
+# Continue to next step
+- tapOn: "Continuar"
+
+# Step 2: Level Selection
+- extendedWaitUntil:
+    visible: "Qual seu nível?"
+    timeout: 5000
+- assertVisible: "Passo 2 de 5"
+
+# Verify levels
+- assertVisible: "Iniciante"
+- assertVisible: "Intermediário"
+- assertVisible: "Avançado"
+- assertVisible: "Profissional"
+
+# Select level
+- tapOn: "Intermediário"
+- tapOn: "Continuar"
+
+# Step 3: Frequency
+- extendedWaitUntil:
+    visible: "Quantas vezes por semana você joga?"
+    timeout: 5000
+- assertVisible: "Passo 3 de 5"
+
+# Verify frequencies
+- assertVisible: "1-2 vezes por semana"
+- assertVisible: "3-4 vezes por semana"
+
+# Select frequency
+- tapOn: "3-4 vezes por semana"
+- tapOn: "Continuar"
+
+# Step 4: Play Style
+- extendedWaitUntil:
+    visible: "Com quem você costuma jogar?"
+    timeout: 5000
+- assertVisible: "Passo 4 de 5"
+
+# Verify options
+- assertVisible: "Sozinho, buscando parceiros"
+- assertVisible: "Com amigos fixos"
+
+# Select play style
+- tapOn: "Sozinho, buscando parceiros"
+- tapOn: "Continuar"
+
+# Step 5: Goals
+- extendedWaitUntil:
+    visible:
+      anyOf:
+        - "Quais são seus objetivos?"
+        - "O que você busca no Kourt?"
+        - "Passo 5 de 5"
+    timeout: 5000
+
+# Complete onboarding
+- tapOn: "Continuar"
+
+# Verify navigation to home
+- extendedWaitUntil:
+    visible:
+      anyOf:
+        - "Início"
+        - "Quadras perto"
+    timeout: 10000

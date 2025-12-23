@@ -9,7 +9,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       profiles: {
@@ -457,6 +457,82 @@ export interface Database {
           court_id?: string
           created_at?: string
         }
+      },
+      matches: {
+        Row: {
+          id: string
+          organizer_id: string
+          court_id: string | null
+          sport: string
+          start_time: string
+          is_private: boolean
+          status: string
+          max_players: number
+          type: string
+          player1_id: string
+          is_public: boolean
+          duration: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organizer_id: string
+          court_id?: string | null
+          sport: string
+          start_time: string
+          is_private?: boolean
+          status?: string
+          max_players: number
+          type?: string
+          player1_id?: string
+          is_public?: boolean
+          duration?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organizer_id?: string
+          court_id?: string | null
+          sport?: string
+          start_time?: string
+          is_private?: boolean
+          status?: string
+          max_players?: number
+          type?: string
+          player1_id?: string
+          is_public?: boolean
+          duration?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      match_players: {
+        Row: {
+          id: string
+          match_id: string
+          user_id: string
+          status: string
+          team: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          match_id: string
+          user_id: string
+          status: string
+          team?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          match_id?: string
+          user_id?: string
+          status?: string
+          team?: string | null
+          created_at?: string
+        }
       }
     }
     Views: {
@@ -482,6 +558,8 @@ export type Notification = Database['public']['Tables']['notifications']['Row']
 export type Ranking = Database['public']['Tables']['rankings']['Row']
 export type Friendship = Database['public']['Tables']['friendships']['Row']
 export type Favorite = Database['public']['Tables']['favorites']['Row']
+export type Match = Database['public']['Tables']['matches']['Row']
+export type MatchPlayer = Database['public']['Tables']['match_players']['Row']
 
 // Insert types
 export type ProfileInsert = Database['public']['Tables']['profiles']['Insert']

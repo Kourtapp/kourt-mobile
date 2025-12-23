@@ -1,6 +1,7 @@
 // Web version of auth - without Apple Authentication
 import * as WebBrowser from 'expo-web-browser';
 import { supabase } from './supabase';
+import { logger } from '../utils/logger';
 
 // Configure WebBrowser for OAuth
 WebBrowser.maybeCompleteAuthSession();
@@ -31,7 +32,7 @@ export async function signInWithGoogle(): Promise<AuthResult> {
       success: true,
     };
   } catch (error: any) {
-    console.error('Google sign in error:', error);
+    logger.error('[Auth] Google sign in error:', error);
     return {
       success: false,
       error: error.message || 'Google sign in failed',
@@ -69,7 +70,7 @@ export async function signInWithEmail(
       userId: data.user?.id,
     };
   } catch (error: any) {
-    console.error('Email sign in error:', error);
+    logger.error('[Auth] Email sign in error:', error);
 
     if (error.message.includes('Invalid login credentials')) {
       return {
@@ -119,7 +120,7 @@ export async function signUpWithEmail(
       userId: data.user?.id,
     };
   } catch (error: any) {
-    console.error('Email sign up error:', error);
+    logger.error('[Auth] Email sign up error:', error);
 
     if (error.message.includes('already registered')) {
       return {
@@ -159,7 +160,7 @@ export async function sendPasswordResetEmail(email: string): Promise<AuthResult>
       success: true,
     };
   } catch (error: any) {
-    console.error('Password reset error:', error);
+    logger.error('[Auth] Password reset error:', error);
     return {
       success: false,
       error: error.message || 'Failed to send reset email',
@@ -182,7 +183,7 @@ export async function updatePassword(newPassword: string): Promise<AuthResult> {
       success: true,
     };
   } catch (error: any) {
-    console.error('Update password error:', error);
+    logger.error('[Auth] Update password error:', error);
     return {
       success: false,
       error: error.message || 'Failed to update password',
@@ -203,7 +204,7 @@ export async function signOut(): Promise<AuthResult> {
       success: true,
     };
   } catch (error: any) {
-    console.error('Sign out error:', error);
+    logger.error('[Auth] Sign out error:', error);
     return {
       success: false,
       error: error.message || 'Failed to sign out',
@@ -222,7 +223,7 @@ export async function getSession() {
 
     return data.session;
   } catch (error) {
-    console.error('Get session error:', error);
+    logger.error('[Auth] Get session error:', error);
     return null;
   }
 }
@@ -238,7 +239,7 @@ export async function getCurrentUser() {
 
     return data.user;
   } catch (error) {
-    console.error('Get user error:', error);
+    logger.error('[Auth] Get user error:', error);
     return null;
   }
 }
@@ -281,7 +282,7 @@ export async function handleAuthCallback(url: string): Promise<AuthResult> {
       error: 'No tokens found in callback URL',
     };
   } catch (error: any) {
-    console.error('Auth callback error:', error);
+    logger.error('[Auth] Auth callback error:', error);
     return {
       success: false,
       error: error.message || 'Failed to handle auth callback',

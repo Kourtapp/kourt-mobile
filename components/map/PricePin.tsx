@@ -8,18 +8,29 @@ interface PricePinProps {
 export function PricePin({ price, selected }: PricePinProps) {
     return (
         <View
-            className={`px-2.5 py-1.5 rounded-xl shadow-sm ${selected ? 'bg-black' : 'bg-white'
-                }`}
+            style={{
+                backgroundColor: selected ? '#22C55E' : '#FFFFFF',
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                borderRadius: 20,
+                shadowColor: "#000",
+                shadowOffset: {
+                    width: 0,
+                    height: 2,
+                },
+                shadowOpacity: 0.25,
+                shadowRadius: 3.84,
+                elevation: 5,
+                transform: [{ scale: selected ? 1.1 : 1 }]
+            }}
         >
-            <Text className={`text-xs font-bold ${selected ? 'text-white' : 'text-black'
-                }`}>
+            <Text style={{
+                fontSize: 13,
+                fontWeight: '700',
+                color: selected ? '#FFFFFF' : '#000'
+            }}>
                 {price ? `R$ ${price}` : 'Grátis'}
             </Text>
-            {/* Triangle pointer */}
-            <View
-                className={`absolute -bottom-1 left-1/2 -ml-1 w-2 h-2 rotate-45 ${selected ? 'bg-black' : 'bg-white'
-                    }`}
-            />
         </View>
     );
 }

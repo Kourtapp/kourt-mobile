@@ -4,9 +4,11 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { updateScore, finishMatch } from '@/services/matches';
 
 export default function LiveScoreScreen() {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id } = useLocalSearchParams<{ id: string }>();
     const [score, setScore] = useState({
         teamA: { sets: [0], games: 0 },

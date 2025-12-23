@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 5.0.0"
+    "version": ">= 5.0.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -13,8 +14,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_SUPABASE_URL": "https://your-dev-project.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "your-dev-anon-key"
+        "APP_VARIANT": "development"
       }
     },
     "preview": {
@@ -26,32 +26,24 @@
         "simulator": false
       },
       "env": {
-        "EXPO_PUBLIC_SUPABASE_URL": "https://your-staging-project.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "your-staging-anon-key"
+        "APP_VARIANT": "preview"
       }
     },
     "production": {
       "autoIncrement": true,
+      "distribution": "store",
+      "ios": {
+        "simulator": false
+      },
       "android": {
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_SUPABASE_URL": "https://your-prod-project.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "your-prod-anon-key"
+        "APP_VARIANT": "production"
       }
     }
   },
   "submit": {
-    "production": {
-      "android": {
-        "serviceAccountKeyPath": "./play-store-key.json",
-        "track": "production"
-      },
-      "ios": {
-        "appleId": "your-apple-id@email.com",
-        "ascAppId": "your-app-store-connect-app-id",
-        "appleTeamId": "YOUR_TEAM_ID"
-      }
-    }
+    "production": {}
   }
 }

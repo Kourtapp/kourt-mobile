@@ -1,0 +1,9 @@
+appId: com.kourt.app
+---
+- launchApp
+- assertVisible: "Entrar"
+- tapOn: "Entrar"
+- inputText: "demo@kourt.app"
+- tapOn: "Senha"
+- inputText: "123456"
+- tapOn: "Entrar"

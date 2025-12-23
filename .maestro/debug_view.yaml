@@ -1,0 +1,21 @@
+appId: com.kourt.app
+---
+- launchApp:
+    clearState: true
+
+# Login Flow
+- tapOn:
+    id: "email-input"
+- inputText: "maestro@kourt.app"
+- hideKeyboard
+- tapOn:
+    id: "password-input"
+- inputText: "password123"
+- hideKeyboard
+- tapOn:
+    id: "login-button"
+
+# Wait for Home
+- extendedWaitUntil:
+    visible: "São Paulo"
+    timeout: 10000

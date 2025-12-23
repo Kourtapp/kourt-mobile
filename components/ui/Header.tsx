@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import { ChevronLeft, LucideIcon } from 'lucide-react-native';
 import { Colors } from '../../constants';
 import { IconButton } from './IconButton';
@@ -36,8 +36,6 @@ export function Header({
   transparent = false,
   className = '',
 }: HeaderProps) {
-  const router = useRouter();
-
   const handleBack = () => {
     if (onBackPress) {
       onBackPress();
@@ -66,6 +64,8 @@ export function Header({
             size="md"
             className="mr-3"
             iconColor={Colors.primary}
+            accessibilityLabel="Voltar"
+            accessibilityHint="Toque duas vezes para voltar à tela anterior"
           />
         )}
 
@@ -76,18 +76,19 @@ export function Header({
             variant="default"
             size="md"
             className="mr-3"
+            accessibilityLabel="Menu"
           />
         )}
 
         {(title || subtitle) && (
-          <View className="flex-1">
+          <View className="flex-1" accessible={true} accessibilityRole="header" accessibilityLabel={`${title}${subtitle ? `. ${subtitle}` : ''}`}>
             {title && (
-              <Text className="text-xl font-bold text-black" numberOfLines={1}>
+              <Text className="text-xl font-bold text-black" numberOfLines={1} accessibilityElementsHidden={true}>
                 {title}
               </Text>
             )}
             {subtitle && (
-              <Text className="text-sm text-neutral-500" numberOfLines={1}>
+              <Text className="text-sm text-neutral-500" numberOfLines={1} accessibilityElementsHidden={true}>
                 {subtitle}
               </Text>
             )}
@@ -134,8 +135,6 @@ export function SimpleHeader({
   rightContent,
   transparent = false,
 }: SimpleHeaderProps) {
-  const router = useRouter();
-
   return (
     <View
       className={`
@@ -149,6 +148,8 @@ export function SimpleHeader({
         variant="default"
         size="md"
         iconColor={Colors.primary}
+        accessibilityLabel="Voltar"
+        accessibilityHint="Toque duas vezes para voltar à tela anterior"
       />
       {rightContent}
     </View>

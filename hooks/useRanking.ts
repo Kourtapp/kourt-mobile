@@ -7,6 +7,8 @@ import {
   RankingPeriod,
 } from '../services/ranking.service';
 import { useAuthStore } from '../stores/authStore';
+import { supabase } from '../lib/supabase';
+import { logger } from '../utils/logger';
 
 export function useRanking(
   sport: RankingSport = 'beach-tennis',
@@ -53,6 +55,30 @@ export function useRanking(
   useEffect(() => {
     setPage(1);
     fetchRanking(1);
+  }, [fetchRanking]);
+
+  // Realtime subscription for ranking changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('rankings-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'rankings',
+        },
+        (payload) => {
+          logger.log('[useRanking] Realtime update:', payload.eventType);
+          setPage(1);
+          fetchRanking(1);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [fetchRanking]);
 
   const loadMore = useCallback(async () => {

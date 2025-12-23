@@ -41,7 +41,12 @@ export function OpenMatchCard({ match, onJoin }: OpenMatchCardProps) {
 
             <Pressable
                 onPress={onJoin}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel={`Entrar na partida de ${match.sport.replace('-', ' ')}`}
+                accessibilityHint={`Toque duas vezes para entrar. Faltam ${match.spotsLeft} jogadores`}
                 className="px-4 py-2 bg-lime-500 rounded-full"
+                style={{ minWidth: 44, minHeight: 44, justifyContent: 'center' }}  // ✅ Touch target
             >
                 <Text className="text-lime-950 text-xs font-semibold">Entrar</Text>
             </Pressable>

@@ -13,6 +13,12 @@ export interface ButtonProps {
   iconPosition?: 'left' | 'right';
   fullWidth?: boolean;
   className?: string;
+  /** Accessibility label for screen readers */
+  accessibilityLabel?: string;
+  /** Accessibility hint describing what happens when pressed */
+  accessibilityHint?: string;
+  /** Test ID for testing */
+  testID?: string;
 }
 
 export function Button({
@@ -26,13 +32,23 @@ export function Button({
   iconPosition = 'left',
   fullWidth = false,
   className = '',
+  accessibilityLabel,
+  accessibilityHint,
+  testID,
 }: ButtonProps) {
   const isDisabled = disabled || loading;
+
+  // Generate accessibility label from children if not provided
+  const getAccessibilityLabel = (): string => {
+    if (accessibilityLabel) return accessibilityLabel;
+    if (typeof children === 'string') return children;
+    return 'Button';
+  };
 
   const baseStyles = 'flex-row items-center justify-center rounded-xl';
 
   const variantStyles = {
-    primary: 'bg-black',
+    primary: 'bg-[#1F2937]',
     secondary: 'bg-neutral-100',
     outline: 'bg-transparent border border-neutral-300',
     ghost: 'bg-transparent',
@@ -83,7 +99,7 @@ export function Button({
 
   const getIconColor = () => {
     if (isDisabled) {
-      return variant === 'primary' || variant === 'danger' ? '#9CA3AF' : '#9CA3AF';
+      return variant === 'primary' || variant === 'danger' ? '#6B7280' : '#6B7280';
     }
     return variant === 'primary' || variant === 'danger' ? '#FFFFFF' : '#000000';
   };
@@ -92,6 +108,15 @@ export function Button({
     <Pressable
       onPress={onPress}
       disabled={isDisabled}
+      testID={testID}
+      accessible={true}
+      accessibilityRole="button"
+      accessibilityLabel={loading ? 'Carregando' : getAccessibilityLabel()}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{
+        disabled: isDisabled,
+        busy: loading,
+      }}
       className={`
         ${baseStyles}
         ${isDisabled ? disabledStyles[variant] : variantStyles[variant]}
@@ -101,17 +126,19 @@ export function Button({
       `}
       style={({ pressed }) => ({
         opacity: pressed && !isDisabled ? 0.8 : 1,
+        minHeight: 44, // Minimum touch target size for accessibility
       })}
     >
       {loading ? (
         <ActivityIndicator
           size="small"
           color={variant === 'primary' || variant === 'danger' ? '#FFFFFF' : '#000000'}
+          accessibilityLabel="Carregando"
         />
       ) : (
         <>
           {Icon && iconPosition === 'left' && (
-            <View className="mr-2">
+            <View className="mr-2" accessibilityElementsHidden={true}>
               <Icon size={iconSizes[size]} color={getIconColor()} />
             </View>
           )}
@@ -125,7 +152,7 @@ export function Button({
             {children}
           </Text>
           {Icon && iconPosition === 'right' && (
-            <View className="ml-2">
+            <View className="ml-2" accessibilityElementsHidden={true}>
               <Icon size={iconSizes[size]} color={getIconColor()} />
             </View>
           )}

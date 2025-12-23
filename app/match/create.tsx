@@ -1,448 +1,473 @@
-import { View, Text, ScrollView, Pressable, TextInput, Alert, ActivityIndicator } from 'react-native';
-import { useState } from 'react';
-import { router, useLocalSearchParams } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
-import { format, addDays } from 'date-fns';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, ScrollView, Pressable, ActivityIndicator, Image } from 'react-native';
+import { useRouter } from 'expo-router';
+import {
+    X,
+    Trophy,
+    Search,
+    Check,
+    Plus,
+    Minus,
+    Globe,
+    Lock,
+    Clock,
+    Calendar,
+    MapPin,
+    ChevronLeft,
+    ChevronRight,
+    Star
+} from 'lucide-react-native';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useMatchStore } from '@/stores/useMatchStore';
-import { useCourts } from '@/hooks/useCourts';
-import { createMatch } from '@/services/matches';
+import { useMatchStore } from '../../stores/useMatchStore';
+import { useAuthStore } from '../../stores/authStore';
+import { useCourts } from '../../hooks/useCourts';
 
-const sports = [
-    { id: 'beach-tennis', name: 'Beach Tennis', icon: 'sports-tennis' },
-    { id: 'padel', name: 'Padel', icon: 'sports-tennis' },
-    { id: 'football', name: 'Futebol', icon: 'sports-soccer' },
-    { id: 'tennis', name: 'Tênis', icon: 'sports-tennis' },
-    { id: 'basketball', name: 'Basquete', icon: 'sports-basketball' },
-    { id: 'volleyball', name: 'Vôlei', icon: 'sports-volleyball' },
+// 3D Icons (using try/catch or requiring images)
+// We assume images are at assets/images/sports/
+const ICONS = {
+    'beach-tennis': require('../../assets/images/sports/beach-tennis.png'),
+    'padel': require('../../assets/images/sports/padel.png'),
+    'football': require('../../assets/images/sports/football.png'), // Will need to ensure this exists or fallback
+    'tennis': require('../../assets/images/sports/tennis.png'),
+    'volleyball': require('../../assets/images/sports/volleyball.png'),
+};
+
+const STEPS = [
+    { id: 'sport', title: 'Qual é o jogo?' },
+    { id: 'location', title: 'Onde vai ser?' },
+    { id: 'datetime', title: 'Quando?' },
+    { id: 'details', title: 'Detalhes da partida' },
+    { id: 'review', title: 'Revisão' },
+];
+
+const SPORTS = [
+    { id: 'beach-tennis', name: 'Beach Tennis' },
+    { id: 'padel', name: 'Padel' },
+    { id: 'football', name: 'Futebol' },
+    { id: 'tennis', name: 'Tênis' },
+    { id: 'volleyball', name: 'Vôlei' },
 ];
 
 export default function CreateMatchScreen() {
-    const { bookingId } = useLocalSearchParams();
-    const [step, setStep] = useState(1);
+    const router = useRouter();
+    const [currentStep, setCurrentStep] = useState(0);
     const [loading, setLoading] = useState(false);
-    const { courts } = useCourts();
 
+    // Stores
+    const { courts } = useCourts();
+    const { session } = useAuthStore();
     const {
-        selectedSport,
-        selectedCourt,
-        selectedDate,
-        selectedTime,
-        isPublic,
-        maxPlayers,
-        skillLevel,
-        title,
-        description,
-        setSport,
-        setCourt,
-        setDate,
-        setTime,
-        setIsPublic,
-        setMaxPlayers,
-        setSkillLevel,
-        setTitle,
-        setDescription,
-        resetMatch,
+        matchType, selectedSport, selectedCourt, selectedDate, selectedTime,
+        duration, isPublic, maxPlayers, skillLevel,
+        setMatchType, setSport, setCourt, setDuration,
+        setIsPublic, setMaxPlayers, setSkillLevel, createMatch
     } = useMatchStore();
 
-    const handleNext = () => {
-        if (step < 4) {
-            setStep(step + 1);
+    // Refs for scrolling if needed
+    const scrollViewRef = useRef<ScrollView>(null);
+
+    // Initial Defaults
+    useEffect(() => {
+        if (!selectedSport) setSport('beach-tennis');
+        if (!selectedCourt && courts.length > 0) setCourt(courts[0] as any);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Handlers
+    const handleNext = async () => {
+        if (currentStep < STEPS.length - 1) {
+            setCurrentStep(prev => prev + 1);
         } else {
-            handleCreate();
+            // Finish
+            await handleCreate();
         }
     };
 
     const handleBack = () => {
-        if (step > 1) {
-            setStep(step - 1);
+        if (currentStep > 0) {
+            setCurrentStep(prev => prev - 1);
         } else {
             router.back();
         }
     };
 
     const handleCreate = async () => {
+        if (!session?.user) return;
         setLoading(true);
+        const result = await createMatch(session.user.id);
+        setLoading(false);
 
-        try {
-            // Mock creation for now
-            const mockMatch = {
-                id: `match-${Date.now()}`,
-                sport: selectedSport,
-                court_id: selectedCourt?.id,
-                date: format(selectedDate, 'yyyy-MM-dd'),
-                start_time: selectedTime,
-                is_public: isPublic,
-                max_players: maxPlayers,
-                skill_level: skillLevel,
-                title: title || `${selectedSport} - ${format(selectedDate, 'dd/MM')}`,
-                description,
-                status: 'open',
-                created_by: 'mock-user-id',
-            };
-
-            // const match = await createMatch(mockMatch);
-
-            Alert.alert(
-                'Partida Criada!',
-                'Sua partida foi criada com sucesso.',
-                [
-                    {
-                        text: 'OK',
-                        onPress: () => {
-                            resetMatch();
-                            router.replace('/(tabs)');
-                        }
-                    }
-                ]
-            );
-        } catch (error: any) {
-            Alert.alert('Erro', error.message || 'Erro ao criar partida');
-        } finally {
-            setLoading(false);
+        if (result.success) {
+            router.push('/match/invite');
+        } else {
+            console.error(result.error);
+            // Alert.alert("Erro", "Não foi possível criar a partida.");
         }
     };
 
-    const canProceed = () => {
-        switch (step) {
-            case 1: return !!selectedSport;
-            case 2: return !!selectedCourt && !!selectedTime;
-            case 3: return maxPlayers >= 2;
-            case 4: return true;
-            default: return false;
-        }
-    };
+    // --- Render Steps ---
 
-    return (
-        <View className="flex-1 bg-white">
-            {/* Header */}
-            <View className="px-5 pt-14 pb-4 flex-row items-center justify-between border-b border-neutral-100">
-                <Pressable onPress={handleBack} className="w-10 h-10 items-center justify-center">
-                    <MaterialIcons name="arrow-back" size={24} color="#000" />
-                </Pressable>
-                <Text className="text-lg font-bold text-black">Criar Partida</Text>
-                <Text className="text-sm text-neutral-500">{step}/4</Text>
+    const renderStep1_Sport = () => (
+        <Animated.View entering={FadeIn} exiting={FadeOut}>
+            <Text className="text-xl font-bold text-slate-900 mb-6">Escolha a modalidade</Text>
+
+            <View className="flex-row flex-wrap gap-3 mb-8">
+                {SPORTS.map((sport) => {
+                    const isSelected = selectedSport === sport.id;
+                    const iconSource = ICONS[sport.id as keyof typeof ICONS];
+
+                    return (
+                        <Pressable
+                            key={sport.id}
+                            onPress={() => setSport(sport.id)}
+                            className={`w-[48%] aspect-square rounded-3xl p-4 justify-between border-2 transition-all ${isSelected ? 'bg-[#1E293B] border-[#1E293B]' : 'bg-white border-slate-100'}`}
+                        >
+                            <View className="flex-1 items-center justify-center">
+                                {iconSource ? (
+                                    <View className="bg-white rounded-2xl p-1 overflow-hidden" style={{ elevation: 2 }}>
+                                        <Image source={iconSource} className="w-16 h-16 rounded-xl" resizeMode="contain" />
+                                    </View>
+                                ) : (
+                                    <Text className="text-3xl">⚽</Text>
+                                )}
+                            </View>
+                            <View>
+                                <Text className={`font-bold text-base text-center leading-tight ${isSelected ? 'text-white' : 'text-slate-900'}`}>
+                                    {sport.name}
+                                </Text>
+                            </View>
+                            {isSelected && (
+                                <View className="absolute top-3 right-3 bg-green-500 w-6 h-6 rounded-full items-center justify-center">
+                                    <Check size={14} color="#FFF" strokeWidth={3} />
+                                </View>
+                            )}
+                        </Pressable>
+                    )
+                })}
             </View>
 
-            {/* Progress Bar */}
-            <View className="px-5 py-3">
-                <View className="h-1 bg-neutral-200 rounded-full overflow-hidden">
-                    <View
-                        className="h-full bg-black rounded-full"
-                        style={{ width: `${(step / 4) * 100}%` }}
-                    />
+            <Text className="text-xl font-bold text-slate-900 mb-4">Tipo de partida</Text>
+            <View className="gap-3">
+                <Pressable
+                    onPress={() => setMatchType('casual')}
+                    className={`p-4 rounded-xl border-2 flex-row items-center gap-4 ${matchType === 'casual' ? 'bg-slate-50 border-[#1E293B]' : 'bg-white border-slate-100'}`}
+                >
+                    <View className="w-12 h-12 rounded-full bg-slate-100 items-center justify-center">
+                        <Search size={20} color={matchType === 'casual' ? '#1E293B' : '#64748b'} />
+                    </View>
+                    <View className="flex-1">
+                        <Text className="font-bold text-base text-slate-900">Casual</Text>
+                        <Text className="text-slate-500 text-sm">Jogo amistoso, sem valer pontos oficiais.</Text>
+                    </View>
+                    <View className={`w-5 h-5 rounded-full border-2 items-center justify-center ${matchType === 'casual' ? 'border-[#1E293B]' : 'border-slate-300'}`}>
+                        {matchType === 'casual' && <View className="w-2.5 h-2.5 rounded-full bg-[#1E293B]" />}
+                    </View>
+                </Pressable>
+
+                <Pressable
+                    onPress={() => setMatchType('ranked')}
+                    className={`p-4 rounded-xl border-2 flex-row items-center gap-4 ${matchType === 'ranked' ? 'bg-yellow-50/50 border-yellow-500' : 'bg-white border-slate-100'}`}
+                >
+                    <View className="w-12 h-12 rounded-full bg-yellow-100 items-center justify-center">
+                        <Trophy size={20} color="#CA8A04" />
+                    </View>
+                    <View className="flex-1">
+                        <View className="flex-row items-center gap-2">
+                            <Text className="font-bold text-base text-slate-900">Ranqueada</Text>
+                            <View className="bg-[#1E293B] px-1.5 rounded">
+                                <Text className="text-white text-[10px] font-bold">PRO</Text>
+                            </View>
+                        </View>
+                        <Text className="text-slate-500 text-sm">Vale pontos para o ranking e XP em dobro.</Text>
+                    </View>
+                    <View className={`w-5 h-5 rounded-full border-2 items-center justify-center ${matchType === 'ranked' ? 'border-yellow-600' : 'border-slate-300'}`}>
+                        {matchType === 'ranked' && <View className="w-2.5 h-2.5 rounded-full bg-yellow-600" />}
+                    </View>
+                </Pressable>
+            </View>
+        </Animated.View>
+    );
+
+    const renderStep2_Location = () => (
+        <Animated.View entering={FadeIn} exiting={FadeOut}>
+            <Text className="text-xl font-bold text-slate-900 mb-2">Onde será o jogo?</Text>
+            <Text className="text-slate-500 mb-6">Selecione uma das quadras parceiras ou adicione um local.</Text>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-5 px-5 mb-6">
+                {/* Map Placeholder */}
+                <View className="w-[300px] h-[150px] bg-slate-100 rounded-2xl items-center justify-center mr-4 border border-slate-200">
+                    <MapPin size={32} color="#CBD5E1" />
+                    <Text className="text-slate-400 font-bold mt-2">Mapa indisponível na prévia</Text>
+                </View>
+            </ScrollView>
+
+            <Text className="font-bold text-base mb-4">Quadras Próximas</Text>
+            <View className="gap-4">
+                {courts.map((court) => {
+                    const isSelected = selectedCourt?.id === court.id;
+                    return (
+                        <Pressable
+                            key={court.id}
+                            onPress={() => setCourt(court as any)}
+                            className={`flex-row p-3 rounded-2xl border-2 bg-white ${isSelected ? 'border-green-500' : 'border-slate-100'}`}
+                        >
+                            <Image
+                                source={{ uri: court.images?.[0] || 'https://images.unsplash.com/photo-1552668693-b0c79f050ce9?q=80&w=800&auto=format&fit=crop' }}
+                                className="w-24 h-24 rounded-xl bg-slate-200"
+                            />
+                            <View className="flex-1 ml-3 justify-center">
+                                <View className="flex-row items-center justify-between">
+                                    <Text className="font-bold text-base text-slate-900">{court.name}</Text>
+                                    {isSelected && <Check size={18} color="#22C55E" />}
+                                </View>
+                                <Text className="text-slate-500 text-xs mt-1">{court.distance || '2km'} • {court.type === 'private' ? 'Particular' : 'Pública'}</Text>
+                                <View className="flex-row items-center gap-1 mt-2">
+                                    <Star size={12} fill="#FACC15" color="#FACC15" />
+                                    <Text className="text-xs font-bold">{court.rating}</Text>
+                                </View>
+                            </View>
+                        </Pressable>
+                    )
+                })}
+            </View>
+        </Animated.View>
+    );
+
+    const renderStep3_DateTime = () => (
+        <Animated.View entering={FadeIn} exiting={FadeOut}>
+            <Text className="text-xl font-bold text-slate-900 mb-6">Quando vai rolar?</Text>
+
+            <View className="bg-white border border-slate-200 rounded-3xl overflow-hidden mb-6">
+                <View className="p-4 border-b border-slate-100 flex-row items-center justify-between">
+                    <View className="flex-1">
+                        <Text className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Data</Text>
+                        <Text className="text-lg font-bold">{format(selectedDate, 'EEEE, d MMMM', { locale: ptBR })}</Text>
+                    </View>
+                    <Calendar size={24} color="#1E293B" />
+                </View>
+                <View className="p-4 flex-row items-center justify-between bg-slate-50/50">
+                    <View className="flex-1">
+                        <Text className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Horário</Text>
+                        <Text className="text-lg font-bold">{selectedTime || '18:00'}</Text>
+                    </View>
+                    <Clock size={24} color="#1E293B" />
                 </View>
             </View>
 
-            <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
-                {/* Step 1: Esporte */}
-                {step === 1 && (
-                    <View>
-                        <Text className="text-xl font-bold text-black mb-6">
-                            Qual esporte?
-                        </Text>
-                        <View className="flex-row flex-wrap gap-3">
-                            {sports.map((sport) => (
-                                <Pressable
-                                    key={sport.id}
-                                    onPress={() => setSport(sport.id)}
-                                    className={`w-[48%] p-4 rounded-2xl border-2 ${selectedSport === sport.id
-                                        ? 'bg-black border-black'
-                                        : 'bg-white border-neutral-200'
-                                        }`}
-                                >
-                                    <MaterialIcons
-                                        name={sport.icon as any}
-                                        size={32}
-                                        color={selectedSport === sport.id ? '#FFF' : '#000'}
-                                    />
-                                    <Text
-                                        className={`mt-2 font-semibold ${selectedSport === sport.id ? 'text-white' : 'text-black'
-                                            }`}
-                                    >
-                                        {sport.name}
-                                    </Text>
-                                </Pressable>
-                            ))}
+            <Text className="font-bold text-base mb-4">Duração</Text>
+            <View className="flex-row gap-3">
+                {[60, 90, 120].map(mins => {
+                    const isSelected = duration === mins;
+                    return (
+                        <Pressable
+                            key={mins}
+                            onPress={() => setDuration(mins)}
+                            className={`flex-1 py-4 rounded-xl border-2 items-center justify-center ${isSelected ? 'bg-[#1E293B] border-[#1E293B]' : 'bg-white border-slate-200'}`}
+                        >
+                            <Text className={`font-bold ${isSelected ? 'text-white' : 'text-slate-900'}`}>
+                                {mins === 60 ? '1h' : mins === 90 ? '1.5h' : '2h'}
+                            </Text>
+                        </Pressable>
+                    )
+                })}
+            </View>
+        </Animated.View>
+    );
+
+    const renderStep4_Details = () => (
+        <Animated.View entering={FadeIn} exiting={FadeOut}>
+            <Text className="text-xl font-bold text-slate-900 mb-6">Configurações da partida</Text>
+
+            {/* Players Count */}
+            <View className="mb-8">
+                <View className="flex-row justify-between items-end mb-4">
+                    <Text className="font-bold text-base">Jogadores</Text>
+                    <Text className="text-2xl font-bold">{maxPlayers}</Text>
+                </View>
+
+                <View className="flex-row items-center justify-between bg-slate-100 p-2 rounded-2xl">
+                    <Pressable onPress={() => setMaxPlayers(Math.max(2, maxPlayers - 1))} className="w-12 h-12 bg-white rounded-xl items-center justify-center shadow-sm">
+                        <Minus size={20} color="#1E293B" />
+                    </Pressable>
+                    <Text className="text-slate-500 font-medium">limite de vagas</Text>
+                    <Pressable onPress={() => setMaxPlayers(maxPlayers + 1)} className="w-12 h-12 bg-white rounded-xl items-center justify-center shadow-sm">
+                        <Plus size={20} color="#1E293B" />
+                    </Pressable>
+                </View>
+            </View>
+
+            {/* Skill Level */}
+            <View className="mb-8">
+                <Text className="font-bold text-base mb-4">Nível sugerido</Text>
+                <View className="gap-3">
+                    {[
+                        { id: 'beginner', label: 'Iniciante', desc: 'Aprendendo as regras e movimentos básicos.' },
+                        { id: 'intermediate', label: 'Intermediário', desc: 'Já joga com consistência e controle.' },
+                        { id: 'advanced', label: 'Avançado', desc: 'Domina técnica e estratégia de jogo.' }
+                    ].map((level) => {
+                        const isSelected = skillLevel === level.id;
+                        return (
+                            <Pressable
+                                key={level.id}
+                                onPress={() => setSkillLevel(level.id)}
+                                className={`p-4 rounded-2xl border-2 flex-row items-center gap-4 ${isSelected ? 'border-[#1E293B] bg-slate-50' : 'border-slate-100 bg-white'}`}
+                            >
+                                <View className={`w-5 h-5 rounded-full border-2 items-center justify-center ${isSelected ? 'border-[#1E293B]' : 'border-slate-300'}`}>
+                                    {isSelected && <View className="w-2.5 h-2.5 rounded-full bg-[#1E293B]" />}
+                                </View>
+                                <View className="flex-1">
+                                    <Text className="font-bold text-slate-900">{level.label}</Text>
+                                    <Text className="text-slate-500 text-xs mt-0.5">{level.desc}</Text>
+                                </View>
+                            </Pressable>
+                        )
+                    })}
+                </View>
+            </View>
+
+            {/* Visibility */}
+            <View>
+                <Text className="font-bold text-base mb-4">Privacidade</Text>
+                <View className="flex-row gap-4">
+                    <Pressable
+                        onPress={() => setIsPublic(true)}
+                        className={`flex-1 p-4 rounded-2xl border-2 items-center gap-2 ${isPublic ? 'border-[#1E293B] bg-[#1E293B]' : 'border-slate-200 bg-white'}`}
+                    >
+                        <Globe size={24} color={isPublic ? '#FFF' : '#1E293B'} />
+                        <Text className={`font-bold ${isPublic ? 'text-white' : 'text-slate-900'}`}>Pública</Text>
+                    </Pressable>
+                    <Pressable
+                        onPress={() => setIsPublic(false)}
+                        className={`flex-1 p-4 rounded-2xl border-2 items-center gap-2 ${!isPublic ? 'border-[#1E293B] bg-[#1E293B]' : 'border-slate-200 bg-white'}`}
+                    >
+                        <Lock size={24} color={!isPublic ? '#FFF' : '#1E293B'} />
+                        <Text className={`font-bold ${!isPublic ? 'text-white' : 'text-slate-900'}`}>Privada</Text>
+                    </Pressable>
+                </View>
+            </View>
+
+        </Animated.View>
+    );
+
+    const renderStep5_Review = () => (
+        <Animated.View entering={FadeIn} exiting={FadeOut}>
+            <Text className="text-xl font-bold text-slate-900 mb-6">Tudo pronto?</Text>
+
+            <View className="bg-white border boundary-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                <Image
+                    source={{ uri: selectedCourt?.images?.[0] || 'https://images.unsplash.com/photo-1552668693-b0c79f050ce9' }}
+                    className="w-full h-48 bg-slate-200"
+                />
+                <View className="p-5">
+                    <View className="flex-row justify-between mb-2">
+                        <Text className="text-2xl font-bold text-slate-900">{selectedCourt?.name}</Text>
+                        {matchType === 'ranked' && (
+                            <View className="bg-[#1E293B] px-2 py-1 h-6 rounded flex-row items-center">
+                                <Trophy size={12} color="#FACC15" />
+                                <Text className="text-white text-[10px] font-bold ml-1">RANKED</Text>
+                            </View>
+                        )}
+                    </View>
+                    <Text className="text-slate-500 mb-6">{SPORTS.find(s => s.id === selectedSport)?.name.toUpperCase()} • {format(selectedDate, "d 'de' MMM")} às {selectedTime}</Text>
+
+                    <View className="gap-4">
+                        <View className="flex-row items-center gap-3">
+                            <View className="w-10 h-10 rounded-full bg-slate-100 items-center justify-center">
+                                <Globe size={20} color="#1E293B" />
+                            </View>
+                            <View>
+                                <Text className="font-bold text-slate-900">{isPublic ? 'Partida Pública' : 'Partida Privada'}</Text>
+                                <Text className="text-xs text-slate-500">Qualquer um pode ver e solicitar participar.</Text>
+                            </View>
+                        </View>
+                        <View className="flex-row items-center gap-3">
+                            <View className="w-10 h-10 rounded-full bg-slate-100 items-center justify-center">
+                                <Plus size={20} color="#1E293B" />
+                            </View>
+                            <View>
+                                <Text className="font-bold text-slate-900">{maxPlayers} Jogadores</Text>
+                                <Text className="text-xs text-slate-500">Nível {skillLevel === 'beginner' ? 'Iniciante' : skillLevel === 'intermediate' ? 'Intermediário' : 'Avançado'}</Text>
+                            </View>
                         </View>
                     </View>
-                )}
+                </View>
+            </View>
 
-                {/* Step 2: Local e Data */}
-                {step === 2 && (
-                    <View>
-                        <Text className="text-xl font-bold text-black mb-6">
-                            Onde e quando?
-                        </Text>
+            <View className="mt-8 bg-slate-50 p-4 rounded-xl flex-row gap-3">
+                <Check size={20} color="#22C55E" />
+                <Text className="text-slate-600 text-sm flex-1">
+                    Ao confirmar, você concorda com as regras de convivência e política de cancelamento do Kourt.
+                </Text>
+            </View>
+        </Animated.View>
+    );
 
-                        {/* Busca de quadra */}
-                        <Pressable
-                            onPress={() => Alert.alert('Em breve', 'Busca de quadras em desenvolvimento')}
-                            className="flex-row items-center bg-neutral-100 rounded-xl px-4 py-3.5 mb-4"
-                        >
-                            <MaterialIcons name="search" size={20} color="#737373" />
-                            <Text className="ml-2 text-neutral-500">Buscar quadra</Text>
+    return (
+        <View className="flex-1 bg-white">
+            <SafeAreaView className="flex-1" edges={['top']}>
+                {/* Header */}
+                <View className="px-5 py-4 flex-row items-center justify-between">
+                    <Pressable onPress={handleBack} className="w-10 h-10 items-center justify-center -ml-2 rounded-full active:bg-slate-100/50">
+                        {currentStep === 0 ? <X size={24} color="#1E293B" /> : <ChevronLeft size={24} color="#1E293B" />}
+                    </Pressable>
+                    <View className="flex-1 mx-4 h-1 bg-slate-100 rounded-full overflow-hidden">
+                        <Animated.View
+                            className="h-full bg-green-500 rounded-full transition-all duration-500"
+                            style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
+                        />
+                    </View>
+                    {/* Placeholder for symmetry */}
+                    <View className="w-10" />
+                </View>
+
+                {/* Content */}
+                <ScrollView
+                    ref={scrollViewRef}
+                    className="flex-1"
+                    contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120, paddingTop: 10 }}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {currentStep === 0 && renderStep1_Sport()}
+                    {currentStep === 1 && renderStep2_Location()}
+                    {currentStep === 2 && renderStep3_DateTime()}
+                    {currentStep === 3 && renderStep4_Details()}
+                    {currentStep === 4 && renderStep5_Review()}
+                </ScrollView>
+
+                {/* Sticky Footer */}
+                <View
+                    className="absolute bottom-0 left-0 right-0 p-5 bg-white border-t border-slate-100 pb-10 shadow-lg"
+                    style={{ shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 5 }}
+                >
+                    <View className="flex-row items-center justify-between">
+                        <Pressable onPress={handleBack} disabled={currentStep === 0}>
+                            <Text className={`font-bold text-base underline ${currentStep === 0 ? 'text-transparent' : 'text-slate-900'}`}>Voltar</Text>
                         </Pressable>
 
-                        {/* Lista de quadras sugeridas */}
-                        <Text className="text-sm text-neutral-500 mb-3">Ou selecione:</Text>
-                        {courts.slice(0, 3).map((court: any) => (
-                            <Pressable
-                                key={court.id}
-                                onPress={() => setCourt(court as any)}
-                                className={`flex-row items-center p-3 rounded-xl mb-2 border ${selectedCourt?.id === court.id
-                                    ? 'bg-neutral-50 border-black'
-                                    : 'bg-white border-neutral-200'
-                                    }`}
-                            >
-                                <View className={`w-5 h-5 rounded-full border-2 items-center justify-center ${selectedCourt?.id === court.id ? 'border-black' : 'border-neutral-300'
-                                    }`}>
-                                    {selectedCourt?.id === court.id && (
-                                        <View className="w-3 h-3 rounded-full bg-black" />
-                                    )}
-                                </View>
-                                <View className="flex-1 ml-3">
-                                    <Text className="font-semibold text-black">{court.name}</Text>
-                                    <Text className="text-xs text-neutral-500">
-                                        {court.distance} · {court.price ? `R$ ${court.price}/h` : 'Gratuita'}
-                                    </Text>
-                                </View>
-                            </Pressable>
-                        ))}
-
-                        {/* Data */}
-                        <Text className="text-base font-bold text-black mt-6 mb-3">Data</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                            {[0, 1, 2, 3, 4, 5, 6].map((offset) => {
-                                const date = addDays(new Date(), offset);
-                                const isSelected = format(selectedDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
-                                return (
-                                    <Pressable
-                                        key={offset}
-                                        onPress={() => setDate(date)}
-                                        className={`px-4 py-3 rounded-xl mr-2 ${isSelected ? 'bg-black' : 'bg-neutral-100'
-                                            }`}
-                                    >
-                                        <Text className={`text-xs ${isSelected ? 'text-white/70' : 'text-neutral-500'}`}>
-                                            {offset === 0 ? 'Hoje' : offset === 1 ? 'Amanhã' : format(date, 'EEE', { locale: ptBR })}
-                                        </Text>
-                                        <Text className={`text-sm font-bold ${isSelected ? 'text-white' : 'text-black'}`}>
-                                            {format(date, 'd')}
-                                        </Text>
-                                    </Pressable>
-                                );
-                            })}
-                        </ScrollView>
-
-                        {/* Horário */}
-                        <Text className="text-base font-bold text-black mt-6 mb-3">Horário</Text>
-                        <View className="flex-row flex-wrap gap-2">
-                            {['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'].map((time) => (
-                                <Pressable
-                                    key={time}
-                                    onPress={() => setTime(time)}
-                                    className={`px-4 py-3 rounded-xl ${selectedTime === time ? 'bg-black' : 'bg-neutral-100'
-                                        }`}
-                                >
-                                    <Text className={`text-sm font-medium ${selectedTime === time ? 'text-white' : 'text-black'
-                                        }`}>
-                                        {time}
-                                    </Text>
-                                </Pressable>
-                            ))}
-                        </View>
-                    </View>
-                )}
-
-                {/* Step 3: Jogadores */}
-                {step === 3 && (
-                    <View>
-                        <Text className="text-xl font-bold text-black mb-6">
-                            Quantos jogadores?
-                        </Text>
-
-                        {/* Tipo de partida */}
-                        <Text className="text-base font-bold text-black mb-3">Tipo de partida</Text>
-                        <View className="flex-row gap-3 mb-6">
-                            <Pressable
-                                onPress={() => setIsPublic(true)}
-                                className={`flex-1 p-4 rounded-2xl border-2 ${isPublic ? 'bg-black border-black' : 'bg-white border-neutral-200'
-                                    }`}
-                            >
-                                <MaterialIcons name="public" size={24} color={isPublic ? '#FFF' : '#000'} />
-                                <Text className={`mt-2 font-semibold ${isPublic ? 'text-white' : 'text-black'}`}>
-                                    Pública
-                                </Text>
-                                <Text className={`text-xs mt-1 ${isPublic ? 'text-white/70' : 'text-neutral-500'}`}>
-                                    Qualquer um pode entrar
-                                </Text>
-                            </Pressable>
-
-                            <Pressable
-                                onPress={() => setIsPublic(false)}
-                                className={`flex-1 p-4 rounded-2xl border-2 ${!isPublic ? 'bg-black border-black' : 'bg-white border-neutral-200'
-                                    }`}
-                            >
-                                <MaterialIcons name="lock" size={24} color={!isPublic ? '#FFF' : '#000'} />
-                                <Text className={`mt-2 font-semibold ${!isPublic ? 'text-white' : 'text-black'}`}>
-                                    Privada
-                                </Text>
-                                <Text className={`text-xs mt-1 ${!isPublic ? 'text-white/70' : 'text-neutral-500'}`}>
-                                    Apenas convidados
-                                </Text>
-                            </Pressable>
-                        </View>
-
-                        {/* Número de jogadores */}
-                        <Text className="text-base font-bold text-black mb-3">Número de jogadores</Text>
-                        <View className="flex-row gap-2 mb-6">
-                            {[2, 4, 6, 8, 10].map((num) => (
-                                <Pressable
-                                    key={num}
-                                    onPress={() => setMaxPlayers(num)}
-                                    className={`w-12 h-12 rounded-xl items-center justify-center ${maxPlayers === num ? 'bg-black' : 'bg-neutral-100'
-                                        }`}
-                                >
-                                    <Text className={`font-bold ${maxPlayers === num ? 'text-white' : 'text-black'}`}>
-                                        {num}
-                                    </Text>
-                                </Pressable>
-                            ))}
-                        </View>
-
-                        {/* Nível de habilidade */}
-                        <Text className="text-base font-bold text-black mb-3">Nível de habilidade</Text>
-                        <View className="flex-row gap-2 flex-wrap">
-                            {[
-                                { id: 'all', label: 'Todos' },
-                                { id: 'beginner', label: 'Iniciante' },
-                                { id: 'intermediate', label: 'Intermed.' },
-                                { id: 'advanced', label: 'Avançado' },
-                            ].map((level) => (
-                                <Pressable
-                                    key={level.id}
-                                    onPress={() => setSkillLevel(level.id)}
-                                    className={`px-4 py-2.5 rounded-full ${skillLevel === level.id ? 'bg-black' : 'bg-neutral-100'
-                                        }`}
-                                >
-                                    <Text className={`text-sm font-medium ${skillLevel === level.id ? 'text-white' : 'text-black'
-                                        }`}>
-                                        {level.label}
-                                    </Text>
-                                </Pressable>
-                            ))}
-                        </View>
-                    </View>
-                )}
-
-                {/* Step 4: Confirmar */}
-                {step === 4 && (
-                    <View>
-                        <Text className="text-xl font-bold text-black mb-6">
-                            Confirme os detalhes
-                        </Text>
-
-                        {/* Resumo */}
-                        <View className="bg-neutral-50 border border-neutral-200 rounded-2xl p-4 mb-6">
-                            <View className="flex-row items-center gap-2 mb-3">
-                                <MaterialIcons name="sports-tennis" size={20} color="#000" />
-                                <Text className="font-bold text-black">
-                                    {sports.find(s => s.id === selectedSport)?.name}
-                                </Text>
-                            </View>
-
-                            <View className="space-y-2">
-                                <View className="flex-row items-center gap-2">
-                                    <MaterialIcons name="location-on" size={16} color="#737373" />
-                                    <Text className="text-sm text-neutral-600">{selectedCourt?.name}</Text>
-                                </View>
-                                <View className="flex-row items-center gap-2">
-                                    <MaterialIcons name="event" size={16} color="#737373" />
-                                    <Text className="text-sm text-neutral-600">
-                                        {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
-                                    </Text>
-                                </View>
-                                <View className="flex-row items-center gap-2">
-                                    <MaterialIcons name="schedule" size={16} color="#737373" />
-                                    <Text className="text-sm text-neutral-600">{selectedTime}</Text>
-                                </View>
-                                <View className="flex-row items-center gap-2">
-                                    <MaterialIcons name="group" size={16} color="#737373" />
-                                    <Text className="text-sm text-neutral-600">{maxPlayers} jogadores (1/{maxPlayers})</Text>
-                                </View>
-                                <View className="flex-row items-center gap-2">
-                                    <MaterialIcons name={isPublic ? "public" : "lock"} size={16} color="#737373" />
-                                    <Text className="text-sm text-neutral-600">
-                                        Partida {isPublic ? 'pública' : 'privada'}
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
-
-                        {/* Título */}
-                        <Text className="text-sm font-medium text-neutral-500 mb-2">
-                            Título (opcional)
-                        </Text>
-                        <TextInput
-                            value={title}
-                            onChangeText={setTitle}
-                            placeholder="Ex: Beach Tennis com amigos"
-                            className="bg-neutral-100 rounded-xl px-4 py-3.5 text-sm text-black mb-4"
-                            placeholderTextColor="#A3A3A3"
-                        />
-
-                        {/* Descrição */}
-                        <Text className="text-sm font-medium text-neutral-500 mb-2">
-                            Descrição (opcional)
-                        </Text>
-                        <TextInput
-                            value={description}
-                            onChangeText={setDescription}
-                            placeholder="Adicione mais detalhes sobre a partida..."
-                            multiline
-                            numberOfLines={3}
-                            className="bg-neutral-100 rounded-xl px-4 py-3.5 text-sm text-black"
-                            placeholderTextColor="#A3A3A3"
-                            style={{ textAlignVertical: 'top' }}
-                        />
-                    </View>
-                )}
-
-                <View className="h-24" />
-            </ScrollView>
-
-            {/* Footer */}
-            <View className="px-5 py-4 pb-8 border-t border-neutral-100">
-                <Pressable
-                    onPress={handleNext}
-                    disabled={!canProceed() || loading}
-                    className={`w-full py-4 rounded-2xl flex-row items-center justify-center gap-2 ${canProceed() && !loading ? 'bg-black' : 'bg-neutral-300'
-                        }`}
-                >
-                    {loading ? (
-                        <ActivityIndicator color="#FFF" />
-                    ) : (
-                        <>
-                            {step === 4 ? (
-                                <>
-                                    <MaterialIcons name="sports-tennis" size={20} color="#FFF" />
-                                    <Text className="text-white font-semibold text-[15px]">
-                                        Criar Partida
-                                    </Text>
-                                </>
+                        <Pressable
+                            onPress={handleNext}
+                            disabled={loading}
+                            className={`px-8 h-14 rounded-xl flex-row items-center justify-center gap-2 ${loading ? 'bg-slate-100' : 'bg-green-500'}`}
+                            style={{ minWidth: 160 }}
+                        >
+                            {loading ? (
+                                <ActivityIndicator color="#000" />
                             ) : (
                                 <>
-                                    <Text className="text-white font-semibold text-[15px]">
-                                        Continuar
+                                    <Text className="text-white font-bold text-lg">
+                                        {currentStep === STEPS.length - 1 ? 'Criar Jogo' : 'Continuar'}
                                     </Text>
-                                    <MaterialIcons name="arrow-forward" size={20} color="#FFF" />
+                                    {currentStep < STEPS.length - 1 && <ChevronRight size={20} color="#FFF" strokeWidth={2.5} />}
                                 </>
                             )}
-                        </>
-                    )}
-                </Pressable>
-            </View>
+                        </Pressable>
+                    </View>
+                </View>
+            </SafeAreaView>
         </View>
     );
 }

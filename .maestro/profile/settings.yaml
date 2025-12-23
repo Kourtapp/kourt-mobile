@@ -1,0 +1,56 @@
+# Test: Settings Screen
+# Tests the settings functionality
+
+appId: com.kourt.app
+
+---
+
+- launchApp
+
+# Wait for app
+- extendedWaitUntil:
+    visible:
+      anyOf:
+        - "Início"
+        - "KOURT"
+    timeout: 10000
+
+# If logged in
+- runFlow:
+    when:
+      visible: "Início"
+    commands:
+      # Navigate to Profile tab
+      - tapOn: "Perfil"
+
+      # Wait for profile
+      - extendedWaitUntil:
+          visible:
+            anyOf:
+              - "Configurações"
+              - "Editar perfil"
+          timeout: 5000
+
+      # Tap settings (usually a gear icon in top right)
+      - runFlow:
+          when:
+            visible: "Configurações"
+          commands:
+            - tapOn: "Configurações"
+
+            # Verify settings options
+            - extendedWaitUntil:
+                visible:
+                  anyOf:
+                    - "Notificações"
+                    - "Privacidade"
+                    - "Segurança"
+                    - "Ajuda"
+                    - "Sair"
+                timeout: 5000
+
+            # Go back
+            - back
+
+      # Return to home
+      - tapOn: "Início"

@@ -1,10 +1,8 @@
-import { View, Text, Pressable, Image } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useAuthStore } from '../../stores/authStore';
 
 export default function WelcomeScreen() {
-    const { user } = useAuthStore();
 
     const handleSkip = () => {
         router.replace('/(tabs)');

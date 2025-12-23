@@ -1,0 +1,65 @@
+# Test: Social Tab
+# Tests the social tab functionality
+
+appId: com.kourt.app
+
+---
+
+- launchApp
+
+# Wait for app
+- extendedWaitUntil:
+    visible:
+      anyOf:
+        - "Início"
+        - "KOURT"
+    timeout: 10000
+
+# If logged in
+- runFlow:
+    when:
+      visible: "Início"
+    commands:
+      # Navigate to Social tab
+      - tapOn: "Social"
+
+      # Wait for social screen
+      - extendedWaitUntil:
+          visible:
+            anyOf:
+              - "Feed"
+              - "Jogadores"
+              - "Grupos"
+              - "Chats"
+              - "Torneios"
+          timeout: 5000
+
+      # Test different tabs within social
+      - runFlow:
+          when:
+            visible: "Jogadores"
+          commands:
+            - tapOn: "Jogadores"
+            - extendedWaitUntil:
+                visible:
+                  anyOf:
+                    - "Buscar"
+                    - "Sugestões"
+                    - "Seguir"
+                timeout: 3000
+
+      - runFlow:
+          when:
+            visible: "Grupos"
+          commands:
+            - tapOn: "Grupos"
+            - extendedWaitUntil:
+                visible:
+                  anyOf:
+                    - "Meus grupos"
+                    - "Criar grupo"
+                    - "Explorar"
+                timeout: 3000
+
+      # Return to home
+      - tapOn: "Início"

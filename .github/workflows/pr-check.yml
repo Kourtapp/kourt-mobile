@@ -1,0 +1,140 @@
+name: PR Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  quality-check:
+    name: Quality Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        id: lint
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Run TypeScript
+        id: typecheck
+        run: npx tsc --noEmit
+        continue-on-error: true
+
+      - name: Run Tests
+        id: test
+        run: npm test -- --coverage --passWithNoTests
+        continue-on-error: true
+
+      - name: Comment PR with results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const lintStatus = '${{ steps.lint.outcome }}' === 'success' ? '✅' : '❌';
+            const typecheckStatus = '${{ steps.typecheck.outcome }}' === 'success' ? '✅' : '❌';
+            const testStatus = '${{ steps.test.outcome }}' === 'success' ? '✅' : '❌';
+
+            const allPassed = lintStatus === '✅' && typecheckStatus === '✅' && testStatus === '✅';
+
+            const body = `## 🔍 Quality Check Results
+
+            | Check | Status |
+            |-------|--------|
+            | Lint | ${lintStatus} |
+            | TypeCheck | ${typecheckStatus} |
+            | Tests | ${testStatus} |
+
+            ${allPassed ? '### ✅ All checks passed!' : '### ❌ Some checks failed. Please fix the issues above.'}
+
+            ---
+            *Commit: ${context.sha.substring(0, 7)}*`;
+
+            // Find existing comment
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existingComment = comments.data.find(comment =>
+              comment.user.type === 'Bot' && comment.body.includes('Quality Check Results')
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Fail if checks failed
+        if: steps.lint.outcome != 'success' || steps.typecheck.outcome != 'success' || steps.test.outcome != 'success'
+        run: exit 1
+
+  size-check:
+    name: Bundle Size Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check bundle size
+        run: |
+          echo "📦 Checking bundle size..."
+          du -sh node_modules | awk '{print "node_modules: " $1}'
+
+      - name: Comment bundle info
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+
+            const depCount = Object.keys(packageJson.dependencies || {}).length;
+            const devDepCount = Object.keys(packageJson.devDependencies || {}).length;
+
+            const body = `## 📦 Bundle Info
+
+            - **Dependencies**: ${depCount}
+            - **Dev Dependencies**: ${devDepCount}
+            - **Total**: ${depCount + devDepCount}
+
+            ---
+            *Commit: ${context.sha.substring(0, 7)}*`;
+
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });

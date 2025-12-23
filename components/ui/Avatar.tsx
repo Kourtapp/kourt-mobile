@@ -61,24 +61,39 @@ export function Avatar({
   const displayFallback = fallback || 'U';
   const bgColor = getColorFromName(displayFallback);
 
+  // Generate accessibility label
+  const getAccessibilityLabel = (): string => {
+    const userName = fallback || 'Usuário';
+    const onlineStatus = showOnline ? (online ? ', online' : ', offline') : '';
+    return `Avatar de ${userName}${onlineStatus}`;
+  };
+
   return (
-    <View className={`relative ${className}`}>
+    <View
+      className={`relative ${className}`}
+      accessible={true}
+      accessibilityRole="image"
+      accessibilityLabel={getAccessibilityLabel()}
+    >
       {hasImage ? (
         <Image
           source={{ uri: src }}
           className={`${styles.container} rounded-full`}
           resizeMode="cover"
+          accessible={true}
+          accessibilityLabel={getAccessibilityLabel()}
         />
       ) : (
         <View
           className={`${styles.container} ${bgColor} rounded-full items-center justify-center`}
+          accessible={false}
         >
           {fallback ? (
-            <Text className={`${styles.text} font-semibold text-white`}>
+            <Text className={`${styles.text} font-semibold text-white`} accessibilityElementsHidden={true}>
               {getInitials(displayFallback)}
             </Text>
           ) : (
-            <User size={styles.icon} color="#FFFFFF" />
+            <User size={styles.icon} color="#FFFFFF" accessibilityElementsHidden={true} />
           )}
         </View>
       )}
@@ -88,6 +103,9 @@ export function Avatar({
           className={`absolute bottom-0 right-0 ${styles.online} rounded-full border-2 border-white ${
             online ? 'bg-green-500' : 'bg-neutral-300'
           }`}
+          accessible={true}
+          accessibilityLabel={online ? 'Online' : 'Offline'}
+          accessibilityRole="text"
         />
       )}
     </View>

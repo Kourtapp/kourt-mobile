@@ -48,6 +48,9 @@ export function Badge({
 
   return (
     <View
+      accessible={true}
+      accessibilityRole="text"
+      accessibilityLabel={typeof children === 'string' ? children : 'Badge'}
       className={`
         rounded-full
         ${variantStyles[variant]}
@@ -86,6 +89,9 @@ export function NotificationBadge({
 
   return (
     <View
+      accessible={true}
+      accessibilityRole="text"
+      accessibilityLabel={`${count} notificações não lidas`}
       className={`
         absolute -top-1 -right-1
         min-w-5 h-5 px-1

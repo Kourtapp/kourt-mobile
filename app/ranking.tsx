@@ -2,28 +2,23 @@ import React, { useState } from 'react';
 import { View, Text, FlatList, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import Animated, {
+  FadeInDown,
+  FadeInUp
+} from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   ChevronLeft,
-  Trophy,
   TrendingUp,
   TrendingDown,
   Minus,
-  Medal,
-  Target,
-  Flame,
+  Crown,
+  Share2
 } from 'lucide-react-native';
 import { Colors } from '../constants';
-import { Avatar, Badge } from '../components/ui';
+import { Avatar } from '../components/ui';
 import { useRanking, useUserRankingStats } from '../hooks/useRanking';
-import { RankingUser, RankingSport, RankingPeriod } from '../services/ranking.service';
-
-const SPORTS = [
-  { id: 'beach-tennis' as RankingSport, name: 'Beach Tennis', emoji: '🎾' },
-  { id: 'padel' as RankingSport, name: 'Padel', emoji: '🎾' },
-  { id: 'tennis' as RankingSport, name: 'Tênis', emoji: '🎾' },
-  { id: 'futevolei' as RankingSport, name: 'Futevôlei', emoji: '⚽' },
-  { id: 'volleyball' as RankingSport, name: 'Vôlei', emoji: '🏐' },
-];
+import { RankingUser, RankingPeriod } from '../services/ranking.service';
 
 const PERIODS = [
   { id: 'week' as RankingPeriod, name: 'Semana' },
@@ -34,268 +29,208 @@ const PERIODS = [
 
 export default function RankingScreen() {
   const router = useRouter();
-  const [selectedSport, setSelectedSport] = useState<RankingSport>('beach-tennis');
   const [selectedPeriod, setSelectedPeriod] = useState<RankingPeriod>('month');
+  const [activeTab, setActiveTab] = useState<'normal' | 'pro'>('normal');
+
+  // Hardcoded sport for now, as UI removed the selector. Default to beach-tennis.
+  const selectedSport = 'beach-tennis';
 
   const { ranking, loading, loadingMore, loadMore, refetch } = useRanking(
     selectedSport,
     selectedPeriod
   );
+
   const { stats } = useUserRankingStats(selectedSport);
 
-  const getTrendIcon = (trend: 'up' | 'down' | 'stable') => {
-    switch (trend) {
-      case 'up':
-        return <TrendingUp size={14} color={Colors.success} />;
-      case 'down':
-        return <TrendingDown size={14} color={Colors.error} />;
-      default:
-        return <Minus size={14} color={Colors.neutral[400]} />;
-    }
-  };
+  // Filtering for visual demo purposes (Pro users would come from backend)
+  const displayRanking = activeTab === 'pro'
+    ? ranking.filter((_, i) => i % 2 === 0) // Mock filter for Pro
+    : ranking;
 
-  const getRankChange = (current: number, previous: number) => {
-    const diff = previous - current;
-    if (diff > 0) return `+${diff}`;
-    if (diff < 0) return `${diff}`;
-    return '-';
-  };
+  // Podium Logic
+  const top1 = displayRanking.find(u => u.rank === 1);
+  const top2 = displayRanking.find(u => u.rank === 2);
+  const top3 = displayRanking.find(u => u.rank === 3);
+  const listRanking = displayRanking.filter(u => u.rank > 3);
 
-  const getRankBadge = (rank: number) => {
-    if (rank === 1) {
-      return (
-        <View className="w-8 h-8 bg-yellow-400 rounded-full items-center justify-center">
-          <Trophy size={16} color="#fff" />
-        </View>
-      );
-    }
-    if (rank === 2) {
-      return (
-        <View className="w-8 h-8 bg-neutral-400 rounded-full items-center justify-center">
-          <Medal size={16} color="#fff" />
-        </View>
-      );
-    }
-    if (rank === 3) {
-      return (
-        <View className="w-8 h-8 bg-amber-600 rounded-full items-center justify-center">
-          <Medal size={16} color="#fff" />
-        </View>
-      );
-    }
-    return (
-      <View className="w-8 h-8 bg-neutral-100 rounded-full items-center justify-center">
-        <Text className="font-bold text-neutral-600">{rank}</Text>
-      </View>
-    );
-  };
-
-  const renderUserItem = ({ item, index }: { item: RankingUser; index: number }) => {
-    const isTopThree = item.rank <= 3;
-
-    return (
+  const renderRankingItem = ({ item, index }: { item: RankingUser; index: number }) => (
+    <Animated.View entering={FadeInDown.delay(index * 100).springify()}>
       <Pressable
         onPress={() => router.push(`/user/${item.id}`)}
-        className={`flex-row items-center px-5 py-4 ${
-          isTopThree ? 'bg-amber-50' : 'bg-white'
-        } border-b border-neutral-50`}
+        className="flex-row items-center px-5 py-3 mb-2 mx-4 bg-white/5 rounded-2xl border border-white/10"
       >
-        {getRankBadge(item.rank)}
+        <Text className="text-white font-bold w-8 font-mono text-lg text-center opacity-60">
+          {item.rank}
+        </Text>
 
-        <View className="ml-3">
-          <Avatar fallback={item.name} size="md" />
+        <View className="mx-3">
+          <Avatar fallback={item.name} size="sm" />
         </View>
 
-        <View className="flex-1 ml-3">
-          <View className="flex-row items-center">
-            <Text className="font-semibold text-black">{item.name}</Text>
-            <Badge variant="outline" className="ml-2">
-              {item.level}
-            </Badge>
-          </View>
-          <View className="flex-row items-center mt-1">
-            <Text className="text-xs text-neutral-500">
-              {item.wins}V - {item.losses}D
-            </Text>
-            <Text className="text-xs text-neutral-400 mx-2">•</Text>
-            <Text className="text-xs text-neutral-500">{item.win_rate.toFixed(0)}% vitórias</Text>
-          </View>
+        <View className="flex-1">
+          <Text className="text-white font-bold text-base">{item.name}</Text>
+          <Text className="text-neutral-400 text-xs">{item.wins} vitórias ({item.win_rate.toFixed(0)}%)</Text>
         </View>
 
         <View className="items-end">
-          <Text className="font-bold text-black">{item.points.toLocaleString()}</Text>
-          <View className="flex-row items-center mt-1">
-            {getTrendIcon(item.trend)}
-            <Text
-              className={`text-xs ml-1 ${
-                item.trend === 'up'
-                  ? 'text-success'
-                  : item.trend === 'down'
-                  ? 'text-error'
-                  : 'text-neutral-400'
-              }`}
-            >
-              {getRankChange(item.rank, item.previous_rank)}
-            </Text>
+          <View className="bg-white/10 px-2 py-1 rounded-lg border border-white/5 mb-1">
+            <Text className="font-bold text-white text-xs">{item.points} pts</Text>
           </View>
+          {item.trend === 'up' && <TrendingUp size={12} color={Colors.success} />}
+          {item.trend === 'down' && <TrendingDown size={12} color={Colors.error} />}
+          {item.trend === 'stable' && <Minus size={12} color={Colors.neutral[500]} />}
         </View>
       </Pressable>
-    );
-  };
-
-  const renderHeader = () => (
-    <View>
-      {/* Sport Selector */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
-        className="py-4 border-b border-neutral-100"
-      >
-        {SPORTS.map((sport) => (
-          <Pressable
-            key={sport.id}
-            onPress={() => setSelectedSport(sport.id)}
-            className={`flex-row items-center px-4 py-2 rounded-full border ${
-              selectedSport === sport.id
-                ? 'bg-black border-black'
-                : 'bg-white border-neutral-200'
-            }`}
-          >
-            <Text className="mr-1">{sport.emoji}</Text>
-            <Text
-              className={selectedSport === sport.id ? 'text-white' : 'text-neutral-700'}
-            >
-              {sport.name}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-
-      {/* Period Selector */}
-      <View className="flex-row px-5 py-3 gap-2 border-b border-neutral-100">
-        {PERIODS.map((period) => (
-          <Pressable
-            key={period.id}
-            onPress={() => setSelectedPeriod(period.id)}
-            className={`flex-1 py-2 rounded-lg items-center ${
-              selectedPeriod === period.id ? 'bg-black' : 'bg-neutral-100'
-            }`}
-          >
-            <Text
-              className={`font-medium ${
-                selectedPeriod === period.id ? 'text-white' : 'text-neutral-600'
-              }`}
-            >
-              {period.name}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-
-      {/* User Stats Card */}
-      {stats && (
-        <View className="mx-5 mt-4 p-4 bg-gradient-to-r from-black to-neutral-800 rounded-2xl">
-          <Text className="text-white/70 text-sm mb-2">Sua posição</Text>
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center">
-              <Text className="text-4xl font-bold text-white">#{stats.rank}</Text>
-              <Text className="text-white/50 text-lg ml-2">/ {stats.total_players}</Text>
-            </View>
-            <View className="items-end">
-              <Text className="text-white font-bold text-xl">
-                {stats.points.toLocaleString()}
-              </Text>
-              <Text className="text-white/70 text-xs">pontos</Text>
-            </View>
-          </View>
-
-          <View className="flex-row mt-4 pt-4 border-t border-white/10">
-            <View className="flex-1 items-center">
-              <View className="flex-row items-center">
-                <Target size={14} color={Colors.success} />
-                <Text className="text-white font-bold ml-1">{stats.wins}</Text>
-              </View>
-              <Text className="text-white/50 text-xs mt-1">Vitórias</Text>
-            </View>
-            <View className="flex-1 items-center">
-              <View className="flex-row items-center">
-                <Target size={14} color={Colors.error} />
-                <Text className="text-white font-bold ml-1">{stats.losses}</Text>
-              </View>
-              <Text className="text-white/50 text-xs mt-1">Derrotas</Text>
-            </View>
-            <View className="flex-1 items-center">
-              <View className="flex-row items-center">
-                <Flame size={14} color={Colors.warning} />
-                <Text className="text-white font-bold ml-1">{stats.current_streak}</Text>
-              </View>
-              <Text className="text-white/50 text-xs mt-1">Sequência</Text>
-            </View>
-            <View className="flex-1 items-center">
-              <View className="flex-row items-center">
-                <Trophy size={14} color="#FFD700" />
-                <Text className="text-white font-bold ml-1">#{stats.best_rank}</Text>
-              </View>
-              <Text className="text-white/50 text-xs mt-1">Melhor</Text>
-            </View>
-          </View>
-        </View>
-      )}
-
-      <View className="px-5 py-4">
-        <Text className="font-semibold text-black">Ranking Geral</Text>
-      </View>
-    </View>
+    </Animated.View>
   );
 
-  return (
-    <SafeAreaView className="flex-1 bg-background">
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-5 py-4 bg-white border-b border-neutral-100">
-        <View className="flex-row items-center">
-          <Pressable
-            onPress={() => router.back()}
-            className="w-10 h-10 bg-neutral-100 rounded-full items-center justify-center mr-4"
-          >
-            <ChevronLeft size={24} color={Colors.primary} />
-          </Pressable>
-          <Text className="text-xl font-bold text-black">Ranking</Text>
-        </View>
-        <View className="flex-row items-center">
-          <Trophy size={24} color={Colors.warning} />
-        </View>
-      </View>
+  const PodiumStep = ({ user, place }: { user?: RankingUser, place: 1 | 2 | 3 }) => {
+    if (!user) return <View className="flex-1 items-center" />;
 
-      <FlatList
-        data={ranking}
-        keyExtractor={(item) => item.id}
-        renderItem={renderUserItem}
-        ListHeaderComponent={renderHeader}
-        showsVerticalScrollIndicator={false}
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.5}
-        refreshing={loading}
-        onRefresh={refetch}
-        ListEmptyComponent={
-          <View className="flex-1 items-center justify-center py-20">
-            <Trophy size={48} color={Colors.neutral[300]} />
-            <Text className="text-lg font-semibold text-neutral-700 mt-4">
-              {loading ? 'Carregando...' : 'Nenhum ranking disponível'}
-            </Text>
-            <Text className="text-neutral-500 mt-1">
-              Os rankings aparecerão aqui
+    const isFirst = place === 1;
+    const height = isFirst ? 140 : 110;
+    const color = isFirst ? '#FACC15' : place === 2 ? '#94A3B8' : '#B45309';
+
+    return (
+      <Animated.View
+        entering={FadeInUp.delay(place * 200).springify()}
+        className={`flex-1 items-center justify-end ${isFirst ? '-mt-8 z-10' : ''}`}
+      >
+        <View className="items-center relative mb-2">
+          {isFirst && (
+            <View className="absolute -top-6">
+              <Crown size={24} color="#FACC15" fill="#FACC15" />
+            </View>
+          )}
+          <View className={`rounded-full p-1 border-2`} style={{ borderColor: color }}>
+            <Avatar fallback={user.name} size={isFirst ? "lg" : "md"} />
+          </View>
+          <View className="absolute -bottom-2 bg-neutral-900 rounded-full px-2 py-0.5 border border-white/10">
+            <Text className="text-white text-xs font-bold" numberOfLines={1}>
+              {user.name.split(' ')[0]}
             </Text>
           </View>
-        }
-        ListFooterComponent={
-          loadingMore ? (
-            <View className="py-4 items-center">
-              <Text className="text-neutral-500">Carregando mais...</Text>
-            </View>
-          ) : null
-        }
+        </View>
+
+        {/* 3D Podium Block */}
+        <View
+          className="w-full items-center justify-start pt-2 rounded-t-lg bg-white/10 border-t border-x border-white/20 backdrop-blur-md"
+          style={{
+            height: height,
+            backgroundColor: isFirst ? 'rgba(250, 204, 21, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+            borderColor: isFirst ? 'rgba(250, 204, 21, 0.3)' : 'rgba(255, 255, 255, 0.1)'
+          }}
+        >
+          <Text className="text-4xl font-black text-white/20">{place}</Text>
+          <Text className="text-white font-bold text-sm mt-1">{user.points}</Text>
+          <Text className="text-white/50 text-[10px]">pts</Text>
+        </View>
+      </Animated.View>
+    );
+  }
+
+  return (
+    <View className="flex-1 bg-neutral-950">
+      <LinearGradient
+        colors={['#171717', '#000000']}
+        className="absolute w-full h-full"
       />
-    </SafeAreaView>
+
+      {/* Cinematic Header Background Effect */}
+      <View className="absolute top-0 w-full h-[500px]">
+        <LinearGradient colors={['rgba(250, 204, 21, 0.15)', 'transparent']} className="w-full h-full" />
+      </View>
+
+      <SafeAreaView className="flex-1" edges={['top']}>
+        {/* Navbar */}
+        <View className="flex-row items-center justify-between px-5 py-2">
+          <Pressable onPress={() => router.back()} className="w-10 h-10 bg-white/10 rounded-full items-center justify-center backdrop-blur-md">
+            <ChevronLeft size={24} color="#FFF" />
+          </Pressable>
+
+          <View className="flex-row bg-white/10 rounded-full p-1 border border-white/10">
+            <Pressable
+              onPress={() => setActiveTab('normal')}
+              className={`px-4 py-1.5 rounded-full ${activeTab === 'normal' ? 'bg-white' : ''}`}
+            >
+              <Text className={`font-bold text-xs ${activeTab === 'normal' ? 'text-black' : 'text-white/60'}`}>RANKING</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setActiveTab('pro')}
+              className={`flex-row items-center px-4 py-1.5 rounded-full ${activeTab === 'pro' ? 'bg-yellow-500' : ''}`}
+            >
+              <Text className={`font-bold text-xs mr-1 ${activeTab === 'pro' ? 'text-black' : 'text-white/60'}`}>PRO</Text>
+              {activeTab !== 'pro' && <Crown size={10} color="#FFFFFF60" />}
+            </Pressable>
+          </View>
+
+          <Pressable className="w-10 h-10 bg-white/10 rounded-full items-center justify-center backdrop-blur-md">
+            <Share2 size={20} color="#FFF" />
+          </Pressable>
+        </View>
+
+        <FlatList
+          data={listRanking}
+          keyExtractor={(item) => item.id}
+          renderItem={renderRankingItem}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          refreshing={loading}
+          onRefresh={refetch}
+          ListHeaderComponent={
+            <View className="mb-6">
+              {/* Filters */}
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="pl-5 mt-4 mb-6">
+                {PERIODS.map(p => (
+                  <Pressable
+                    key={p.id}
+                    onPress={() => setSelectedPeriod(p.id)}
+                    className={`mr-3 px-4 py-2 rounded-xl border ${selectedPeriod === p.id ? 'bg-white border-white' : 'bg-transparent border-white/20'}`}
+                  >
+                    <Text className={`font-bold ${selectedPeriod === p.id ? 'text-black' : 'text-white'}`}>{p.name}</Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+
+              {/* Podium Section - 3D Effect */}
+              <View className="flex-row items-end justify-center px-4 h-[280px]">
+                <PodiumStep place={2} user={top2} />
+                <PodiumStep place={1} user={top1} />
+                <PodiumStep place={3} user={top3} />
+              </View>
+
+              {/* Stats Summary Strip */}
+              {stats && (
+                <View className="mx-4 mt-6 mb-4 flex-row justify-between bg-white/5 p-4 rounded-2xl border border-white/10">
+                  <View>
+                    <Text className="text-white/60 text-xs mb-1">Total Jogadores</Text>
+                    <Text className="text-white font-bold text-xl">{stats.total_players}</Text>
+                  </View>
+                  <View className="h-full w-[1px] bg-white/10" />
+                  <View>
+                    <Text className="text-white/60 text-xs mb-1">Sua Posição</Text>
+                    <Text className="text-yellow-400 font-bold text-xl">#{stats.rank}</Text>
+                  </View>
+                  <View className="h-full w-[1px] bg-white/10" />
+                  <View>
+                    <Text className="text-white/60 text-xs mb-1">Pontuação</Text>
+                    <Text className="text-white font-bold text-xl">{stats.points}</Text>
+                  </View>
+                </View>
+              )}
+            </View>
+          }
+          ListFooterComponent={
+            loadingMore ? (
+              <View className="py-4 items-center">
+                <Text className="text-neutral-500">Carregando mais...</Text>
+              </View>
+            ) : null
+          }
+        />
+
+      </SafeAreaView>
+    </View>
   );
 }

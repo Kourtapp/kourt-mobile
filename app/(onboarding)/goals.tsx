@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useAuthStore } from '../../stores/authStore';
 
 const goalOptions = [
     {
@@ -35,7 +34,6 @@ const goalOptions = [
 export default function GoalsScreen() {
     const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
-    const { user } = useAuthStore();
 
     const toggleGoal = (goalId: string) => {
         setSelectedGoals((prev) =>

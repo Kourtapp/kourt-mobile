@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   ScrollView,
   Pressable,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -13,7 +14,6 @@ import {
   Calendar,
   Clock,
   MapPin,
-  Users,
   CreditCard,
   Phone,
   Navigation,
@@ -24,18 +24,75 @@ import {
   Check,
 } from 'lucide-react-native';
 import { Colors, SPORTS_CONFIG, BOOKING_STATUS } from '../../constants';
-import { MOCK_BOOKINGS } from '../../mocks/data';
-import { Avatar, Badge, Button, Card, IconButton } from '../../components/ui';
+import { getBooking, cancelBooking } from '../../services/bookings';
+import { Badge, Button, Card, IconButton } from '../../components/ui';
+
+interface BookingDetails {
+  id: string;
+  court_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  duration_hours: number;
+  total_price: number;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  payment_status?: string;
+  confirmation_code?: string;
+  court?: {
+    id: string;
+    name: string;
+    city?: string;
+    address?: string;
+    sport_type?: string;
+    phone?: string;
+  };
+}
 
 export default function BookingDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-
-  const booking = MOCK_BOOKINGS.find((b) => b.id === id) || MOCK_BOOKINGS[0];
-  const sportConfig = SPORTS_CONFIG[booking.court.sport as keyof typeof SPORTS_CONFIG];
-  const statusConfig = BOOKING_STATUS[booking.status];
-
+  const [booking, setBooking] = useState<BookingDetails | null>(null);
+  const [loading, setLoading] = useState(true);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
+  const loadBooking = useCallback(async () => {
+    if (!id) return;
+    try {
+      const data = await getBooking(id);
+      setBooking(data as BookingDetails);
+    } catch (_error) {
+      console.error('Error loading booking:', _error);
+      Alert.alert('Erro', 'Não foi possível carregar os detalhes da reserva');
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    loadBooking();
+  }, [loadBooking]);
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-background items-center justify-center">
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </SafeAreaView>
+    );
+  }
+
+  if (!booking) {
+    return (
+      <SafeAreaView className="flex-1 bg-background items-center justify-center">
+        <Text>Reserva não encontrada</Text>
+        <Button onPress={() => router.back()} variant="ghost">Voltar</Button>
+      </SafeAreaView>
+    );
+  }
+
+  const sport = booking.court?.sport_type || 'beach-tennis';
+  const sportConfig = SPORTS_CONFIG[sport as keyof typeof SPORTS_CONFIG];
+  const statusConfig = BOOKING_STATUS[booking.status];
 
   const bookingDate = new Date(booking.date);
   const isPast = bookingDate < new Date();
@@ -52,7 +109,6 @@ export default function BookingDetailScreen() {
   };
 
   const handleCopyCode = () => {
-    // In real app, use Clipboard API
     setCodeCopied(true);
     setTimeout(() => setCodeCopied(false), 2000);
   };
@@ -61,290 +117,153 @@ export default function BookingDetailScreen() {
     console.log('Sharing booking...');
   };
 
-  const handleCall = () => {
-    // In real app, use Linking to call
-    console.log('Calling court...');
-  };
-
-  const handleDirections = () => {
-    // In real app, open maps
-    console.log('Opening directions...');
-  };
-
-  const handleCancel = () => {
+  const handleCancel = async () => {
     Alert.alert(
-      'Cancelar reserva',
-      'Tem certeza que deseja cancelar esta reserva? Você será reembolsado conforme nossa política de cancelamento.',
+      'Cancelar Reserva',
+      'Tem certeza que deseja cancelar esta reserva?',
       [
         { text: 'Não', style: 'cancel' },
         {
-          text: 'Cancelar reserva',
+          text: 'Sim, cancelar',
           style: 'destructive',
-          onPress: () => {
-            // Handle cancellation
-            router.back();
+          onPress: async () => {
+            setCancelling(true);
+            try {
+              await cancelBooking(booking.id);
+              Alert.alert('Sucesso', 'Reserva cancelada com sucesso');
+              router.back();
+            } catch {
+              Alert.alert('Erro', 'Não foi possível cancelar a reserva');
+            } finally {
+              setCancelling(false);
+            }
           },
         },
       ]
     );
   };
 
-  const handleMessage = () => {
-    router.push({
-      pathname: '/chat/[id]',
-      params: { id: booking.court.id, name: booking.court.name },
-    });
-  };
-
-  const getStatusBadge = () => {
-    const variants: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
-      confirmed: 'success',
-      pending: 'warning',
-      cancelled: 'error',
-      completed: 'default',
-    };
-
-    return (
-      <Badge variant={variants[booking.status] || 'default'}>
-        {statusConfig.name}
-      </Badge>
-    );
+  const statusColors: Record<string, string> = {
+    confirmed: 'bg-green-100',
+    pending: 'bg-yellow-100',
+    cancelled: 'bg-red-100',
+    completed: 'bg-neutral-100',
   };
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View className="flex-row items-center px-5 py-4 bg-white border-b border-neutral-100">
-        <IconButton
-          icon={ChevronLeft}
-          onPress={() => router.back()}
-          variant="default"
-          iconColor={Colors.primary}
-        />
-        <Text className="flex-1 text-xl font-bold text-black text-center">
-          Detalhes da reserva
-        </Text>
-        <IconButton
-          icon={Share2}
-          onPress={handleShare}
-          variant="default"
-          iconColor={Colors.neutral[600]}
-        />
+      <View className="flex-row items-center justify-between px-5 py-4 bg-white border-b border-neutral-100">
+        <IconButton icon={ChevronLeft} onPress={() => router.back()} />
+        <Text className="text-lg font-semibold text-black">Detalhes da Reserva</Text>
+        <IconButton icon={Share2} onPress={handleShare} />
       </View>
 
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
-      >
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Status Banner */}
-        <View
-          className="mx-5 mt-4 p-4 rounded-xl flex-row items-center"
-          style={{ backgroundColor: statusConfig.color + '15' }}
-        >
-          <View
-            className="w-10 h-10 rounded-full items-center justify-center"
-            style={{ backgroundColor: statusConfig.color + '30' }}
-          >
-            <Check size={20} color={statusConfig.color} />
-          </View>
-          <View className="flex-1 ml-3">
-            <Text style={{ color: statusConfig.color }} className="font-bold">
-              {statusConfig.name}
-            </Text>
-            <Text style={{ color: statusConfig.color + 'cc' }} className="text-sm">
-              {booking.status === 'confirmed'
-                ? 'Sua reserva está confirmada'
-                : booking.status === 'pending'
-                ? 'Aguardando confirmação'
-                : booking.status === 'cancelled'
-                ? 'Esta reserva foi cancelada'
-                : 'Partida finalizada'}
-            </Text>
+        <View className={`mx-5 mt-4 p-4 rounded-xl ${statusColors[booking.status]}`}>
+          <View className="flex-row items-center justify-between">
+            <View>
+              <Text className="text-sm text-neutral-600">Status</Text>
+              <Text className="text-lg font-bold text-black">{statusConfig?.name || booking.status}</Text>
+            </View>
+            <Badge
+              variant={booking.status === 'confirmed' ? 'success' : booking.status === 'cancelled' ? 'error' : 'warning'}
+            >
+              {statusConfig?.name || booking.status}
+            </Badge>
           </View>
         </View>
 
-        {/* Booking Code */}
-        <Pressable
-          onPress={handleCopyCode}
-          className="mx-5 mt-4 p-4 bg-neutral-100 rounded-xl flex-row items-center justify-between"
-        >
-          <View>
-            <Text className="text-neutral-500 text-sm">Código da reserva</Text>
-            <Text className="font-bold text-black text-lg tracking-widest">
-              KRT-{booking.id.toUpperCase().slice(0, 6)}
-            </Text>
-          </View>
-          {codeCopied ? (
-            <Check size={20} color={Colors.success} />
-          ) : (
-            <Copy size={20} color={Colors.neutral[500]} />
-          )}
-        </Pressable>
-
         {/* Court Info */}
-        <Card variant="elevated" className="mx-5 mt-4">
+        <Card className="mx-5 mt-4">
           <View className="flex-row">
             <View
               className="w-16 h-16 rounded-xl items-center justify-center"
-              style={{ backgroundColor: sportConfig?.iconBg }}
+              style={{ backgroundColor: sportConfig?.iconBg || Colors.neutral[100] }}
             >
-              <Text className="text-3xl">{sportConfig?.emoji}</Text>
+              <Text className="text-2xl">{sportConfig?.emoji || '🎾'}</Text>
             </View>
             <View className="flex-1 ml-4">
-              <Text className="font-bold text-black text-lg">{booking.court.name}</Text>
+              <Text className="text-lg font-bold text-black">{booking.court?.name || 'Quadra'}</Text>
               <View className="flex-row items-center mt-1">
                 <MapPin size={14} color={Colors.neutral[500]} />
-                <Text className="ml-1 text-neutral-500">{booking.court.city}</Text>
-              </View>
-              <View className="flex-row gap-2 mt-2">
-                {getStatusBadge()}
-                <Badge variant="default">{sportConfig?.name}</Badge>
+                <Text className="ml-1 text-neutral-500">{booking.court?.address || booking.court?.city}</Text>
               </View>
             </View>
-          </View>
-
-          <View className="h-px bg-neutral-100 my-4" />
-
-          {/* Quick Actions */}
-          <View className="flex-row gap-3">
-            <Pressable
-              onPress={handleCall}
-              className="flex-1 flex-row items-center justify-center bg-neutral-100 py-3 rounded-xl"
-            >
-              <Phone size={18} color={Colors.neutral[700]} />
-              <Text className="ml-2 font-medium text-neutral-700">Ligar</Text>
-            </Pressable>
-            <Pressable
-              onPress={handleDirections}
-              className="flex-1 flex-row items-center justify-center bg-neutral-100 py-3 rounded-xl"
-            >
-              <Navigation size={18} color={Colors.neutral[700]} />
-              <Text className="ml-2 font-medium text-neutral-700">Direções</Text>
-            </Pressable>
-            <Pressable
-              onPress={handleMessage}
-              className="flex-1 flex-row items-center justify-center bg-neutral-100 py-3 rounded-xl"
-            >
-              <MessageCircle size={18} color={Colors.neutral[700]} />
-              <Text className="ml-2 font-medium text-neutral-700">Chat</Text>
-            </Pressable>
           </View>
         </Card>
 
         {/* Date & Time */}
-        <Card variant="outlined" className="mx-5 mt-4">
-          <Text className="font-bold text-black mb-4">Data e horário</Text>
-
-          <View className="gap-3">
-            <View className="flex-row items-center">
-              <View className="w-10 h-10 bg-neutral-100 rounded-full items-center justify-center">
-                <Calendar size={18} color={Colors.neutral[600]} />
-              </View>
-              <Text className="ml-3 text-black">{formatDate(booking.date)}</Text>
-            </View>
-            <View className="flex-row items-center">
-              <View className="w-10 h-10 bg-neutral-100 rounded-full items-center justify-center">
-                <Clock size={18} color={Colors.neutral[600]} />
-              </View>
-              <Text className="ml-3 text-black">
-                {booking.time} - {booking.duration} minutos
-              </Text>
-            </View>
+        <Card className="mx-5 mt-4">
+          <View className="flex-row items-center mb-3">
+            <Calendar size={20} color={Colors.primary} />
+            <Text className="ml-3 text-black">{formatDate(booking.date)}</Text>
+          </View>
+          <View className="flex-row items-center">
+            <Clock size={20} color={Colors.primary} />
+            <Text className="ml-3 text-black">
+              {booking.start_time?.slice(0, 5)} - {booking.end_time?.slice(0, 5)} ({booking.duration_hours}h)
+            </Text>
           </View>
         </Card>
 
-        {/* Players */}
-        <Card variant="outlined" className="mx-5 mt-4">
-          <View className="flex-row items-center justify-between mb-4">
+        {/* Payment */}
+        <Card className="mx-5 mt-4">
+          <View className="flex-row items-center justify-between">
             <View className="flex-row items-center">
-              <Users size={18} color={Colors.neutral[600]} />
-              <Text className="ml-2 font-bold text-black">Jogadores</Text>
+              <CreditCard size={20} color={Colors.primary} />
+              <Text className="ml-3 text-black">Total</Text>
             </View>
-            <Badge variant="default">{booking.players.length} confirmados</Badge>
+            <Text className="text-xl font-bold text-black">R$ {booking.total_price}</Text>
           </View>
+        </Card>
 
-          <View className="gap-3">
-            {booking.players.map((player, index) => (
-              <Pressable
-                key={player.id}
-                onPress={() => router.push(`/user/${player.id}`)}
-                className="flex-row items-center"
-              >
-                <Avatar fallback={player.name} size="md" />
-                <View className="flex-1 ml-3">
-                  <Text className="font-medium text-black">{player.name}</Text>
-                  <Text className="text-neutral-500 text-sm">
-                    {index === 0 ? 'Organizador' : 'Jogador'}
-                  </Text>
-                </View>
-                {index === 0 && (
-                  <Badge variant="success" size="sm">Confirmado</Badge>
+        {/* Confirmation Code */}
+        {booking.confirmation_code && (
+          <Card className="mx-5 mt-4">
+            <Text className="text-sm text-neutral-500 mb-2">Código de Confirmação</Text>
+            <View className="flex-row items-center justify-between">
+              <Text className="text-2xl font-bold text-black tracking-widest">
+                {booking.confirmation_code}
+              </Text>
+              <Pressable onPress={handleCopyCode} className="p-2">
+                {codeCopied ? (
+                  <Check size={20} color={Colors.success} />
+                ) : (
+                  <Copy size={20} color={Colors.neutral[500]} />
                 )}
               </Pressable>
-            ))}
-          </View>
-        </Card>
-
-        {/* Payment Info */}
-        <Card variant="outlined" className="mx-5 mt-4">
-          <View className="flex-row items-center mb-4">
-            <CreditCard size={18} color={Colors.neutral[600]} />
-            <Text className="ml-2 font-bold text-black">Pagamento</Text>
-          </View>
-
-          <View className="gap-2">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-neutral-600">Quadra ({booking.duration}min)</Text>
-              <Text className="text-black">R$ {booking.price}</Text>
             </View>
-            <View className="flex-row items-center justify-between">
-              <Text className="text-neutral-600">Taxa de serviço</Text>
-              <Text className="text-black">R$ 0,00</Text>
-            </View>
-            <View className="h-px bg-neutral-100 my-2" />
-            <View className="flex-row items-center justify-between">
-              <Text className="font-bold text-black">Total pago</Text>
-              <Text className="font-bold text-black text-lg">R$ {booking.price}</Text>
-            </View>
-          </View>
-
-          <View className="mt-4 p-3 bg-neutral-50 rounded-xl flex-row items-center">
-            <CreditCard size={16} color={Colors.neutral[500]} />
-            <Text className="ml-2 text-neutral-600 text-sm">
-              Pago via PIX • {new Date(booking.date).toLocaleDateString('pt-BR')}
-            </Text>
-          </View>
-        </Card>
-
-        {/* Cancellation Policy */}
-        {canCancel && (
-          <View className="mx-5 mt-4 p-4 bg-amber-50 rounded-xl">
-            <Text className="font-semibold text-amber-800 mb-1">
-              Política de cancelamento
-            </Text>
-            <Text className="text-amber-700 text-sm">
-              Cancelamento gratuito até 24 horas antes do horário marcado.
-              Após esse período, será cobrada uma taxa de 50%.
-            </Text>
-          </View>
+          </Card>
         )}
-      </ScrollView>
 
-      {/* Bottom Actions */}
-      {canCancel && (
-        <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-neutral-100 px-5 py-4 pb-8">
-          <Button
-            onPress={handleCancel}
-            variant="danger"
-            fullWidth
-            size="lg"
-            icon={X}
-          >
-            Cancelar reserva
+        {/* Actions */}
+        <View className="mx-5 mt-6 mb-8 gap-3">
+          {booking.court?.phone && (
+            <Button variant="outline" icon={Phone}>
+              Ligar para a quadra
+            </Button>
+          )}
+          <Button variant="outline" icon={Navigation}>
+            Ver no mapa
           </Button>
+          <Button variant="outline" icon={MessageCircle}>
+            Enviar mensagem
+          </Button>
+          {canCancel && (
+            <Button
+              variant="ghost"
+              icon={X}
+              onPress={handleCancel}
+              loading={cancelling}
+              className="border border-red-200"
+            >
+              <Text className="text-red-600">Cancelar reserva</Text>
+            </Button>
+          )}
         </View>
-      )}
+      </ScrollView>
     </SafeAreaView>
   );
 }

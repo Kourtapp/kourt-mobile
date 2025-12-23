@@ -9,17 +9,19 @@ import {
 import { Colors, DEFAULT_LOCATION } from '../../constants';
 import { Badge, SearchInput } from '../../components/ui';
 import { useLocation, formatDistance, calculateDistance } from '../../hooks/useLocation';
-import { MOCK_COURTS, SPORTS_MAP } from '../../mocks/data';
+import { useCourts } from '../../hooks/useCourts';
+import { SPORTS_MAP } from '../../constants/sports';
 
 type SportFilter = string | null;
 
-export default function MapScreenWeb() {
+export default function MapScreen() {
   const router = useRouter();
   const { location } = useLocation();
+  const { courts } = useCourts();
   const [sportFilter, setSportFilter] = useState<SportFilter>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const courtsWithCoordinates = MOCK_COURTS.map((court) => {
+  const courtsWithCoordinates = courts.map((court) => {
     const latOffset = (Math.random() - 0.5) * 0.08;
     const lngOffset = (Math.random() - 0.5) * 0.08;
     const coordinates: [number, number] = [
@@ -34,7 +36,7 @@ export default function MapScreenWeb() {
           coordinates[1],
           coordinates[0]
         )
-      : court.distance ?? 0;
+      : 0;
 
     return {
       ...court,
@@ -44,10 +46,10 @@ export default function MapScreenWeb() {
   }).sort((a, b) => a.calculatedDistance - b.calculatedDistance);
 
   const filteredCourts = courtsWithCoordinates.filter((court) => {
-    const matchesSport = !sportFilter || court.sports.includes(sportFilter);
+    const matchesSport = !sportFilter || court.sport === sportFilter || court.sport?.toLowerCase().includes(sportFilter.toLowerCase());
     const matchesSearch = !searchQuery ||
       court.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      court.city.toLowerCase().includes(searchQuery.toLowerCase());
+      (court.city && court.city.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesSport && matchesSearch;
   });
 
@@ -136,25 +138,23 @@ export default function MapScreenWeb() {
                     <View className="flex-row items-center mt-1">
                       <MapPin size={14} color={Colors.neutral[500]} />
                       <Text className="text-sm text-neutral-500 ml-1">
-                        {formatDistance(court.calculatedDistance)}
+                        {formatDistance(Number(court.calculatedDistance) || 0)}
                       </Text>
                       <Text className="text-neutral-300 mx-2">•</Text>
                       <Star size={14} fill={Colors.warning} color={Colors.warning} />
                       <Text className="text-sm text-neutral-600 ml-1">
-                        {court.rating} ({court.review_count})
+                        {court.rating}
                       </Text>
                     </View>
                   </View>
                   <Text className="font-bold text-black text-lg">
-                    R$ {court.price_per_hour}/h
+                    {court.price ? `R$ ${court.price}/h` : 'Grátis'}
                   </Text>
                 </View>
                 <View className="flex-row gap-2 mt-3">
-                  {court.sports.map((sport) => (
-                    <Badge key={sport} variant="default">
-                      {SPORTS_MAP[sport]?.emoji} {SPORTS_MAP[sport]?.name}
-                    </Badge>
-                  ))}
+                  <Badge variant="default">
+                    {SPORTS_MAP[court.sport]?.emoji || '🏸'} {SPORTS_MAP[court.sport]?.name || court.sport}
+                  </Badge>
                 </View>
               </View>
             </Pressable>

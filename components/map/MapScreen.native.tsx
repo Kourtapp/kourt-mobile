@@ -1,63 +1,112 @@
-import { View, Text, Pressable, FlatList, Dimensions } from 'react-native';
-import { useState } from 'react';
+import { View, Pressable, FlatList, Dimensions, StyleSheet, Text } from 'react-native';
+import { useState, useCallback } from 'react';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ArrowLeft, SlidersHorizontal } from 'lucide-react-native';
 
-import { SearchBar } from './SearchBar';
-import { FilterPills } from './FilterPills';
 import { PricePin } from './PricePin';
-import { CourtListItem } from './CourtListItem';
+import { CourtCard } from '../home/CourtCard';
 import { useCourts } from '../../hooks/useCourts';
+import { FilterSheet, FilterOptions } from '../ui/FilterSheet';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const SNAP_POINTS = [SCREEN_HEIGHT * 0.15, SCREEN_HEIGHT * 0.45, SCREEN_HEIGHT - 120]; // Keep ~120px visible at bottom
 
-export function MapScreen() {
+export default function MapScreen() {
+    const insets = useSafeAreaInsets();
     const { courts } = useCourts();
 
     const [selectedCourt, setSelectedCourt] = useState<string | null>(null);
-    const [filter, setFilter] = useState('all');
-    const [showFilters, setShowFilters] = useState(false);
 
-    // Bottom sheet animation
-    const translateY = useSharedValue(SCREEN_HEIGHT * 0.6);
+    // Animation Values
+    const translateY = useSharedValue(SCREEN_HEIGHT * 0.45);
+    const context = useSharedValue({ y: 0 });
+
+    const scrollTo = useCallback((destination: number) => {
+        'worklet';
+        translateY.value = withTiming(destination, { duration: 300 });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const panGesture = Gesture.Pan()
-        .onUpdate((e) => {
-            translateY.value = Math.max(100, Math.min(SCREEN_HEIGHT * 0.8, translateY.value + e.translationY));
+        .onStart(() => {
+            context.value = { y: translateY.value };
         })
-        .onEnd(() => {
-            if (translateY.value < SCREEN_HEIGHT * 0.4) {
-                translateY.value = withSpring(100);
-            } else {
-                translateY.value = withSpring(SCREEN_HEIGHT * 0.6);
-            }
+        .onUpdate((e) => {
+            translateY.value = Math.max(
+                insets.top + 50, // Top limit
+                Math.min(SCREEN_HEIGHT - 120, context.value.y + e.translationY) // Bottom limit
+            );
+        })
+        .onEnd((e) => {
+            // Find closest snap point
+            const dest = SNAP_POINTS.reduce((prev, curr) =>
+                Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev
+            );
+            scrollTo(dest);
         });
 
     const bottomSheetStyle = useAnimatedStyle(() => ({
         transform: [{ translateY: translateY.value }],
-        height: SCREEN_HEIGHT,
+        top: 0, // Position from top instead of bottom/height hacks
+        bottom: 0,
+        position: 'absolute',
+        left: 0,
+        right: 0,
     }));
 
-    const filteredCourts = courts.filter((court) => {
-        if (filter === 'all') return true;
-        if (filter === 'free') return court.price === null;
-        if (filter === 'available') return court.available_now;
-        return court.sport === filter;
+    const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+        sports: [],
+        priceMin: 0,
+        priceMax: 900,
+        distance: 20,
+        minRating: 0,
+        amenities: [],
+        courtTypes: [],
+        bookingOptions: [],
+        availableNow: false,
+        availableToday: false,
+        availableThisWeek: false,
+        includeFree: false
     });
 
-    return (
-        <View className="flex-1 bg-[#fafafa]">
-            {/* Search Bar */}
-            <View className="absolute top-12 left-0 right-0 z-30 bg-white px-4 pt-3 pb-3 border-b border-neutral-100 shadow-sm">
-                <SearchBar onFilterPress={() => setShowFilters(true)} />
-                <FilterPills selected={filter} onSelect={setFilter} />
-            </View>
+    const [showFilters, setShowFilters] = useState(false);
 
-            {/* Map */}
+    const filteredCourts = courts.filter((court) => {
+        // Price filter
+        if (court.price !== null) {
+            if (court.price < filterOptions.priceMin || court.price > filterOptions.priceMax) return false;
+        } else if (!filterOptions.includeFree && filterOptions.priceMax < 900) {
+            // Logic: if price is null (free) but user didn't explicitly select 'free' option 
+            // AND set a max price, we might exclude. But usually free is included unless specific price range excludes 0? 
+            // Let's keep it simple: if free, only show if includeFree is true OR priceMin is 0.
+            if (filterOptions.priceMin > 0) return false;
+        }
+
+        // Availability
+        if (filterOptions.availableNow && !court.available_now) return false;
+
+        // Sports
+        if (filterOptions.sports.length > 0 && !filterOptions.sports.includes(court.sport)) return false;
+
+        return true;
+    });
+
+    const handleApplyFilters = (newFilters: FilterOptions) => {
+        setFilterOptions(newFilters);
+        setShowFilters(false);
+        // Scroll to list view on filter apply to show results
+        scrollTo(SCREEN_HEIGHT * 0.45);
+    };
+
+    return (
+        <View className="flex-1 bg-white">
+            {/* Full Screen Map */}
             <MapView
-                style={{ flex: 1 }}
+                style={StyleSheet.absoluteFill}
                 provider={PROVIDER_DEFAULT}
                 initialRegion={{
                     latitude: -23.5505,
@@ -65,6 +114,7 @@ export function MapScreen() {
                     latitudeDelta: 0.05,
                     longitudeDelta: 0.05,
                 }}
+                onPress={() => scrollTo(SCREEN_HEIGHT - 120)} // Close sheet on map press
             >
                 {filteredCourts.map((court) => (
                     <Marker
@@ -73,7 +123,11 @@ export function MapScreen() {
                             latitude: court.latitude,
                             longitude: court.longitude,
                         }}
-                        onPress={() => setSelectedCourt(court.id)}
+                        onPress={(e) => {
+                            e.stopPropagation();
+                            setSelectedCourt(court.id);
+                            scrollTo(SCREEN_HEIGHT * 0.45); // Snap to mid on marker press
+                        }}
                     >
                         <PricePin
                             price={court.price}
@@ -83,40 +137,120 @@ export function MapScreen() {
                 ))}
             </MapView>
 
+            {/* Floating Search Pill (Airbnb Style) */}
+            <View
+                style={{
+                    position: 'absolute',
+                    top: insets.top + 10,
+                    left: 20,
+                    right: 20,
+                    zIndex: 10
+                }}
+            >
+                <View
+                    style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        backgroundColor: '#FFFFFF',
+                        borderRadius: 30,
+                        padding: 8,
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.15,
+                        shadowRadius: 12,
+                        elevation: 5,
+                    }}
+                >
+                    <Pressable
+                        onPress={() => router.back()}
+                        style={{ padding: 8 }}
+                    >
+                        <ArrowLeft size={20} color="#000" />
+                    </Pressable>
+
+                    <Pressable
+                        style={{ flex: 1, marginLeft: 8 }}
+                        onPress={() => router.push('/search')}
+                    >
+                        <Text style={{ fontSize: 14, fontWeight: '700', color: '#000' }}>
+                            Quadras por perto
+                        </Text>
+                        <Text style={{ fontSize: 12, color: '#6B7280' }}>
+                            Qualquer data · Hóspedes?
+                        </Text>
+                    </Pressable>
+
+                    <Pressable
+                        style={{
+                            padding: 8,
+                            backgroundColor: '#F3F4F6',
+                            borderRadius: 20,
+                            marginRight: 4
+                        }}
+                        onPress={() => setShowFilters(true)}
+                    >
+                        <SlidersHorizontal size={18} color="#000" />
+                    </Pressable>
+                </View>
+            </View>
+
             {/* Bottom Sheet */}
             <GestureDetector gesture={panGesture}>
                 <Animated.View
-                    style={bottomSheetStyle}
-                    className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-lg"
+                    style={[
+                        bottomSheetStyle,
+                        {
+                            backgroundColor: '#FFFFFF',
+                            borderTopLeftRadius: 24,
+                            borderTopRightRadius: 24,
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: -2 },
+                            shadowOpacity: 0.1,
+                            shadowRadius: 8,
+                            elevation: 10,
+                        }
+                    ]}
                 >
-                    {/* Handle */}
-                    <View className="w-12 h-1 bg-neutral-300 rounded-full mx-auto mt-3 mb-4" />
-
-                    {/* Header */}
-                    <View className="px-5 flex-row items-center justify-between mb-3">
-                        <Text className="text-base font-bold text-black">
-                            {filteredCourts.length} quadras encontradas
-                        </Text>
-                        <Pressable className="px-3 py-1.5 bg-neutral-100 rounded-full">
-                            <Text className="text-xs text-black font-medium">Lista</Text>
-                        </Pressable>
+                    {/* Drag Handle */}
+                    <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 8 }}>
+                        <View style={{ width: 40, height: 4, backgroundColor: '#E5E7EB', borderRadius: 2 }} />
                     </View>
 
-                    {/* Court List */}
+                    {/* Header Text */}
+                    <View style={{ alignItems: 'center', paddingBottom: 16 }}>
+                        <Text style={{ fontSize: 16, fontWeight: '700', color: '#111827' }}>
+                            Mais de {filteredCourts.length} quadras
+                        </Text>
+                    </View>
+
+                    {/* Content */}
                     <FlatList
                         data={filteredCourts}
                         keyExtractor={(item) => item.id}
                         renderItem={({ item }) => (
-                            <CourtListItem
-                                court={item}
-                                onPress={() => router.push(`/court/${item.id}` as any)}
-                            />
+                            <View style={{ alignItems: 'center', marginBottom: 24, width: '100%', paddingHorizontal: 24 }}>
+                                <CourtCard
+                                    court={item}
+                                    variant="full"
+                                    onPress={() => router.push(`/court/${item.id}` as any)}
+                                />
+                            </View>
                         )}
-                        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 150 }}
-                        ItemSeparatorComponent={() => <View className="h-3" />}
+                        contentContainerStyle={{
+                            paddingTop: 8,
+                            paddingBottom: 100
+                        }}
+                        showsVerticalScrollIndicator={false}
                     />
                 </Animated.View>
             </GestureDetector>
+
+            <FilterSheet
+                visible={showFilters}
+                onClose={() => setShowFilters(false)}
+                onApply={handleApplyFilters}
+                resultsCount={filteredCourts.length}
+            />
         </View>
     );
 }

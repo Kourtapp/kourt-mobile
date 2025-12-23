@@ -1,4 +1,5 @@
 // Web stub for notification setup - push notifications not supported on web
+import { logger } from '../utils/logger';
 
 export function useNotificationSetup() {
   // No-op for web - push notifications are not supported in browser
@@ -12,7 +13,7 @@ export function useScheduleBookingReminders() {
     _bookingDate: Date
   ) => {
     // No-op on web - local notifications not available
-    console.log('[Web] Booking reminders not available on web platform');
+    logger.log('[Web] Booking reminders not available on web platform');
   };
 
   const cancelReminders = async (_notificationIds: string[]) => {

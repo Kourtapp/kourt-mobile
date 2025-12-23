@@ -1,0 +1,23 @@
+# Code Owners for Kourt Mobile App
+# These owners will be automatically requested for review when someone opens a PR
+
+# Default owner for everything in the repo
+* @bruno
+
+# Specific directories
+/app/ @bruno
+/components/ @bruno
+/hooks/ @bruno
+/services/ @bruno
+/stores/ @bruno
+/lib/ @bruno
+
+# Supabase migrations and functions
+/supabase/migrations/ @bruno
+/supabase/functions/ @bruno
+
+# Configuration files
+*.json @bruno
+*.js @bruno
+*.ts @bruno
+.github/ @bruno

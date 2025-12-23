@@ -1,0 +1,91 @@
+appId: com.kourt.app
+---
+# MVP Test 3: Create Match (No ClearState)
+
+- launchApp
+
+# Login
+- tapOn:
+    id: "email-input"
+- inputText: "maestro@kourt.app"
+- hideKeyboard
+- tapOn:
+    id: "password-input"
+- inputText: "password123"
+- hideKeyboard
+- tapOn:
+    id: "login-button"
+
+- waitForAnimationToEnd
+
+# Wait for home
+- extendedWaitUntil:
+    visible: "São Paulo"
+    timeout: 10000
+
+# Click debug wizard button (if exists)
+- tapOn:
+    id: "debug-wizard-btn"
+
+- waitForAnimationToEnd
+
+# Step 1: Sport
+- extendedWaitUntil:
+    visible: "Escolha a modalidade"
+    timeout: 5000
+- tapOn:
+    id: "sport-beach-tennis"
+- tapOn:
+    id: "next-button"
+
+- waitForAnimationToEnd
+
+# Step 2: Location
+- extendedWaitUntil:
+    visible: "Onde será o jogo?"
+    timeout: 5000
+- tapOn:
+    id: "next-button"
+
+- waitForAnimationToEnd
+
+# Step 3: DateTime
+- extendedWaitUntil:
+    visible: "Quando vai rolar?"
+    timeout: 5000
+- tapOn:
+    id: "next-button"
+
+- waitForAnimationToEnd
+
+# Step 4: Details
+- extendedWaitUntil:
+    visible: "Configurações da partida"
+    timeout: 5000
+- tapOn:
+    id: "next-button"
+
+- waitForAnimationToEnd
+
+# Step 5: Invite
+- extendedWaitUntil:
+    visible: "Convidar jogadores"
+    timeout: 5000
+- tapOn:
+    id: "skip-invite-button"
+
+- waitForAnimationToEnd
+
+# Step 6: Review
+- extendedWaitUntil:
+    visible: "Tudo pronto?"
+    timeout: 5000
+- tapOn:
+    id: "next-button"
+
+- waitForAnimationToEnd
+
+# Success - Should return to home
+- extendedWaitUntil:
+    visible: "Quadras perto de você"
+    timeout: 10000

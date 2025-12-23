@@ -1,9 +1,29 @@
-import * as WebBrowser from 'expo-web-browser';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { supabase } from './supabase';
+import { logger } from '../utils/logger';
 
-// Configure WebBrowser for OAuth
-WebBrowser.maybeCompleteAuthSession();
+// Conditional import for Google Sign-In (native module may not be available in dev)
+let GoogleSignin: any = null;
+let statusCodes: any = {};
+let isErrorWithCode: any = () => false;
+let IS_GOOGLE_SIGNIN_AVAILABLE = false;
+
+try {
+  const GoogleSigninModule = require('@react-native-google-signin/google-signin');
+  GoogleSignin = GoogleSigninModule.GoogleSignin;
+  statusCodes = GoogleSigninModule.statusCodes;
+  isErrorWithCode = GoogleSigninModule.isErrorWithCode;
+  IS_GOOGLE_SIGNIN_AVAILABLE = true;
+
+  // Configure Google Sign-In only if available
+  GoogleSignin.configure({
+    scopes: ['email', 'profile'],
+    webClientId: '138959893910-6910pim9b6v1r6dsism9suthh65u5p2o.apps.googleusercontent.com',
+    iosClientId: '138959893910-tk4vdvs4iqm64mbmcqt6cpqk6hv4e3ai.apps.googleusercontent.com',
+  });
+} catch {
+  logger.log('[Auth] Google Sign-In native module not available');
+}
 
 export interface AuthResult {
   success: boolean;
@@ -12,85 +32,69 @@ export interface AuthResult {
 }
 
 /**
- * Sign in with Google
+ * Sign in with Google (Native)
  */
 export async function signInWithGoogle(): Promise<AuthResult> {
+  if (!IS_GOOGLE_SIGNIN_AVAILABLE || !GoogleSignin) {
+    return {
+      success: false,
+      error: 'Google Sign-In não está disponível neste build',
+    };
+  }
+
   try {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: 'kourt://auth/callback',
-        skipBrowserRedirect: true,
-      },
-    });
+    await GoogleSignin.hasPlayServices();
+    const userInfo = await GoogleSignin.signIn();
 
-    if (error) throw error;
+    // Check if idToken is present (it should be if webClientId is configured)
+    if (userInfo.data?.idToken) {
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token: userInfo.data.idToken,
+      });
 
-    if (data.url) {
-      // Open the OAuth URL in the browser
-      const result = await WebBrowser.openAuthSessionAsync(
-        data.url,
-        'kourt://auth/callback'
-      );
+      if (error) throw error;
 
-      if (result.type === 'success' && result.url) {
-        // Extract the tokens from the URL
-        const url = new URL(result.url);
-        const params = new URLSearchParams(url.hash.substring(1));
-        const accessToken = params.get('access_token');
-        const refreshToken = params.get('refresh_token');
-
-        if (accessToken && refreshToken) {
-          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-
-          if (sessionError) throw sessionError;
-
-          return {
-            success: true,
-            userId: sessionData.user?.id,
-          };
-        }
-      }
-
-      if (result.type === 'cancel') {
-        return {
-          success: false,
-          error: 'User cancelled',
-        };
-      }
+      return {
+        success: true,
+        userId: data.user?.id,
+      };
+    } else {
+      throw new Error('No ID token present');
     }
-
-    return {
-      success: false,
-      error: 'Failed to start OAuth flow',
-    };
   } catch (error: any) {
-    console.error('Google sign in error:', error);
-    return {
-      success: false,
-      error: error.message || 'Google sign in failed',
-    };
+    if (isErrorWithCode(error)) {
+      switch (error.code) {
+        case statusCodes.SIGN_IN_CANCELLED:
+          return { success: false, error: 'Login cancelado pelo usuário' };
+        case statusCodes.IN_PROGRESS:
+          return { success: false, error: 'Login já está em andamento' };
+        case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+          return { success: false, error: 'Google Play Services não disponível' };
+        default:
+          logger.error('[Auth] Google sign in error:', error);
+          return { success: false, error: 'Falha no login com Google' };
+      }
+    } else {
+      logger.error('[Auth] Google sign in error:', error);
+      return { success: false, error: error.message || 'Falha no login com Google' };
+    }
   }
 }
 
 /**
- * Sign in with Apple
+ * Sign in with Apple (Native)
  */
 export async function signInWithApple(): Promise<AuthResult> {
   try {
-    // Check if Apple Sign In is available
     const isAvailable = await AppleAuthentication.isAvailableAsync();
     if (!isAvailable) {
       return {
         success: false,
-        error: 'Apple Sign In is not available on this device',
+        error: 'Apple Sign In não está disponível neste dispositivo',
       };
     }
 
-    // Request Apple credentials
     const credential = await AppleAuthentication.signInAsync({
       requestedScopes: [
         AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
@@ -99,7 +103,6 @@ export async function signInWithApple(): Promise<AuthResult> {
     });
 
     if (credential.identityToken) {
-      // Sign in with Supabase using the Apple ID token
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'apple',
         token: credential.identityToken,
@@ -107,7 +110,7 @@ export async function signInWithApple(): Promise<AuthResult> {
 
       if (error) throw error;
 
-      // Update user profile with name from Apple if available
+      // Update user profile with name if provided by Apple (only on first login)
       if (credential.fullName && data.user) {
         const fullName = [
           credential.fullName.givenName,
@@ -117,6 +120,7 @@ export async function signInWithApple(): Promise<AuthResult> {
           .join(' ');
 
         if (fullName) {
+          // It's safe to cast here as we know 'profiles' table exists
           await (supabase
             .from('profiles') as any)
             .update({ name: fullName })
@@ -132,20 +136,20 @@ export async function signInWithApple(): Promise<AuthResult> {
 
     return {
       success: false,
-      error: 'No identity token received',
+      error: 'Token de identidade não recebido',
     };
   } catch (error: any) {
     if (error.code === 'ERR_CANCELED') {
       return {
         success: false,
-        error: 'User cancelled',
+        error: 'Login cancelado pelo usuário',
       };
     }
 
-    console.error('Apple sign in error:', error);
+    logger.error('[Auth] Apple sign in error:', error);
     return {
       success: false,
-      error: error.message || 'Apple sign in failed',
+      error: error.message || 'Falha no login com Apple',
     };
   }
 }
@@ -170,7 +174,7 @@ export async function signInWithEmail(
       userId: data.user?.id,
     };
   } catch (error: any) {
-    console.error('Email sign in error:', error);
+    logger.error('[Auth] Email sign in error:', error);
 
     // Handle specific error messages
     if (error.message.includes('Invalid login credentials')) {
@@ -222,7 +226,7 @@ export async function signUpWithEmail(
       userId: data.user?.id,
     };
   } catch (error: any) {
-    console.error('Email sign up error:', error);
+    logger.error('[Auth] Email sign up error:', error);
 
     // Handle specific error messages
     if (error.message.includes('already registered')) {
@@ -261,7 +265,7 @@ export async function sendPasswordResetEmail(email: string): Promise<AuthResult>
       success: true,
     };
   } catch (error: any) {
-    console.error('Password reset error:', error);
+    logger.error('[Auth] Password reset error:', error);
     return {
       success: false,
       error: error.message || 'Failed to send reset email',
@@ -284,7 +288,7 @@ export async function updatePassword(newPassword: string): Promise<AuthResult> {
       success: true,
     };
   } catch (error: any) {
-    console.error('Update password error:', error);
+    logger.error('[Auth] Update password error:', error);
     return {
       success: false,
       error: error.message || 'Failed to update password',
@@ -305,7 +309,7 @@ export async function signOut(): Promise<AuthResult> {
       success: true,
     };
   } catch (error: any) {
-    console.error('Sign out error:', error);
+    logger.error('[Auth] Sign out error:', error);
     return {
       success: false,
       error: error.message || 'Failed to sign out',
@@ -324,7 +328,7 @@ export async function getSession() {
 
     return data.session;
   } catch (error) {
-    console.error('Get session error:', error);
+    logger.error('[Auth] Get session error:', error);
     return null;
   }
 }
@@ -340,7 +344,7 @@ export async function getCurrentUser() {
 
     return data.user;
   } catch (error) {
-    console.error('Get user error:', error);
+    logger.error('[Auth] Get user error:', error);
     return null;
   }
 }
@@ -383,7 +387,7 @@ export async function handleAuthCallback(url: string): Promise<AuthResult> {
       error: 'No tokens found in callback URL',
     };
   } catch (error: any) {
-    console.error('Auth callback error:', error);
+    logger.error('[Auth] Auth callback error:', error);
     return {
       success: false,
       error: error.message || 'Failed to handle auth callback',

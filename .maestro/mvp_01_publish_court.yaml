@@ -1,0 +1,80 @@
+appId: com.kourt.app
+---
+# MVP Test 1: Publish Court
+# Tests the critical flow: Create private court → View in listings
+
+- launchApp
+
+# Login as Maestro User (has completed onboarding)
+- tapOn:
+    id: "email-input"
+- inputText: "maestro@kourt.app"
+- hideKeyboard
+- tapOn:
+    id: "password-input"
+- inputText: "password123"
+- hideKeyboard
+- tapOn:
+    id: "login-button"
+
+# Wait for home screen
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: "Quadras perto de você"
+    timeout: 10000
+
+# Open Plus Modal (Menu+)
+- tapOn: "Menu+"
+- waitForAnimationToEnd
+
+# Navigate to Create Private Court
+- tapOn: "Quadra Privada"
+- waitForAnimationToEnd
+
+# Fill court details (Step 1: Básico)
+- tapOn:
+    id: "court-name-input"
+- inputText: "Quadra Teste Maestro"
+- hideKeyboard
+
+# Select sport (assuming Beach Tennis is first)
+- tapOn:
+    text: "Beach Tennis"
+
+# Continue to next step
+- tapOn:
+    id: "next-button"
+- waitForAnimationToEnd
+
+# Step 2: Localização
+- tapOn:
+    id: "address-input"
+- inputText: "Av. Paulista, 1000"
+- hideKeyboard
+- tapOn:
+    id: "city-input"
+- inputText: "São Paulo"
+- hideKeyboard
+- tapOn:
+    id: "next-button"
+- waitForAnimationToEnd
+
+# Step 3: Valor
+- tapOn:
+    id: "price-input"
+- inputText: "80"
+- hideKeyboard
+- tapOn:
+    id: "next-button"
+- waitForAnimationToEnd
+
+# Step 4: Final - Publish
+- tapOn:
+    id: "publish-button"
+- waitForAnimationToEnd
+
+# Verify success (should redirect to listings or home)
+- extendedWaitUntil:
+    visible:
+      text: "Quadra.*sucesso"
+    timeout: 10000

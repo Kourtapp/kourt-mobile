@@ -1,0 +1,44 @@
+appId: com.kourt.app
+---
+# 0. Clean Slate
+- launchApp:
+    clearState: true
+
+# 1. Registration Flow
+- extendedWaitUntil:
+    visible: "KOURT"
+    timeout: 30000
+- hideKeyboard
+- tapOn:
+    id: "register-button"
+- extendedWaitUntil:
+    visible: "Criar conta"
+    timeout: 10000
+
+# 2. Fill Form with INVALID CPF
+- tapOn: "Seu nome completo"
+- inputText: "Maestro Tester"
+- hideKeyboard
+- tapOn: "000.000.000-00"
+- inputText: "12345678901" # Invalid CPF
+- hideKeyboard
+- tapOn: "seu@email.com"
+- inputText: ${"user_" + new Date().getTime() + "@test.com"}
+- hideKeyboard
+- tapOn: "(11) 99999-9999"
+- inputText: "11999999999"
+- hideKeyboard
+- scroll
+- tapOn: "Senha"
+- inputText: "12345678Ab"
+- hideKeyboard
+- scroll # Scroll to bottom
+- scroll
+- tapOn:
+    id: "terms-checkbox"
+- tapOn:
+    id: "submit-register"
+
+# 3. Assert Validation Error
+- assertVisible: "CPF Inválido" # Expecting this native alert
+- tapOn: "OK"

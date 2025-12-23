@@ -1,0 +1,48 @@
+appId: com.kourt.app
+tags:
+  - stress
+  - onboarding
+---
+- launchApp:
+    clearState: true
+
+# 1. Login Flow (Fast)
+- runFlow:
+    when:
+      visible: "KOURT"
+    commands:
+      - tapOn:
+          id: "email-input"
+      - inputText: "bruno.camargo0498@hotmail.com"
+      - hideKeyboard
+      - tapOn:
+          id: "password-input"
+      - inputText: "wsd322fhtrj"
+      - hideKeyboard
+      - tapOn:
+          id: "login-button"
+
+# 2. Onboarding Flow
+- extendedWaitUntil:
+    visible: "Qual esporte você joga?"
+    timeout: 30000
+
+# Select Sports (Select 2 distinct sports)
+- tapOn: "Beach Tennis"
+- tapOn: "Vôlei"
+- tapOn: "Continuar"
+
+# 3. Level Selection (Wizard Flow)
+
+# Sport 1: Beach Tennis -> Advanced
+- assertVisible: "Nível em Beach Tennis?"
+- tapOn: "Avançado"
+- tapOn: "Próximo Esporte"
+
+# Sport 2: Vôlei -> Beginner
+- assertVisible: "Nível em Vôlei?"
+- tapOn: "Iniciante"
+- tapOn: "Finalizar Níveis"
+
+# 4. Schedule Screen
+- assertVisible: "Quantas vezes por semana você joga?"

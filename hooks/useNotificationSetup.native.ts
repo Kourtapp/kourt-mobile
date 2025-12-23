@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import { AppState, AppStateStatus } from 'react-native';
 import {
   notificationService,
@@ -8,9 +8,9 @@ import {
   getNotificationData,
 } from '../lib/notifications';
 import { useAuthStore } from '../stores/authStore';
+import { logger } from '../utils/logger';
 
 export function useNotificationSetup() {
-  const router = useRouter();
   const { session } = useAuthStore();
   const userId = session?.user?.id;
   const appState = useRef(AppState.currentState);
@@ -32,14 +32,14 @@ export function useNotificationSetup() {
   useEffect(() => {
     // Handle notification received while app is foregrounded
     const receivedSubscription = addNotificationReceivedListener((notification) => {
-      console.log('Notification received:', notification);
+      logger.log('[useNotificationSetup] Notification received:', notification);
       // You can show an in-app notification here
     });
 
     // Handle notification interaction (tap)
     const responseSubscription = addNotificationResponseReceivedListener((response) => {
       const data = getNotificationData(response);
-      console.log('Notification tapped:', data);
+      logger.log('[useNotificationSetup] Notification tapped:', data);
 
       if (data) {
         handleNotificationNavigation(data);
@@ -50,7 +50,7 @@ export function useNotificationSetup() {
       receivedSubscription.remove();
       responseSubscription.remove();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   useEffect(() => {
@@ -65,7 +65,7 @@ export function useNotificationSetup() {
   const handleAppStateChange = async (nextAppState: AppStateStatus) => {
     if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
       // App came to foreground - could refresh badge count here
-      console.log('App came to foreground');
+      logger.log('[useNotificationSetup] App came to foreground');
     }
     appState.current = nextAppState;
   };
@@ -91,7 +91,7 @@ export function useNotificationSetup() {
         router.push(`/booking/${data.bookingId}`);
         break;
       case 'booking_cancelled':
-        router.push('/(tabs)/bookings');
+        router.push('/history' as any);
         break;
       default:
         router.push('/notifications');

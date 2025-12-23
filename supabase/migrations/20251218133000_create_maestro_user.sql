@@ -1,0 +1,3 @@
+-- Migration 20251218133000 combined with 20251218120000 to avoid duplicate maestro user
+-- This migration is commented out to prevent duplicate user creation
+-- All maestro user creation is handled in 20251218120000_create_test_users.sql

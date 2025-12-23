@@ -1,5 +1,4 @@
-import { View, Text, Image, ScrollView, Pressable } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { View, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
 
 const MOCK_PLAYERS = [
     {
@@ -51,17 +50,17 @@ export function PlayersTab() {
                         </Text>
                     </View>
 
-                    <Pressable
-                        className={`px-4 py-1.5 rounded-full border ${player.isFollowing
-                                ? 'bg-white border-neutral-300'
-                                : 'bg-black border-black'
-                            }`}
-                    >
-                        <Text className={`text-xs font-semibold ${player.isFollowing ? 'text-black' : 'text-white'
+                    <TouchableOpacity>
+                        <View className={`px-4 py-1.5 rounded-full border ${player.isFollowing
+                            ? 'bg-white border-neutral-300'
+                            : 'bg-black border-black'
                             }`}>
-                            {player.isFollowing ? 'Seguindo' : 'Seguir'}
-                        </Text>
-                    </Pressable>
+                            <Text className={`text-xs font-semibold ${player.isFollowing ? 'text-black' : 'text-white'
+                                }`}>
+                                {player.isFollowing ? 'Seguindo' : 'Seguir'}
+                            </Text>
+                        </View>
+                    </TouchableOpacity>
                 </View>
             ))}
         </ScrollView>

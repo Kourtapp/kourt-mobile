@@ -45,6 +45,9 @@ export function Card({
 export interface PressableCardProps extends CardProps {
   onPress?: () => void;
   disabled?: boolean;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+  accessibilityRole?: 'button' | 'link' | 'none';
 }
 
 export function PressableCard({
@@ -54,6 +57,9 @@ export function PressableCard({
   className = '',
   variant = 'default',
   padding = 'md',
+  accessibilityLabel,
+  accessibilityHint,
+  accessibilityRole = 'button',
 }: PressableCardProps) {
   const variantStyles = {
     default: 'bg-white',
@@ -72,6 +78,11 @@ export function PressableCard({
     <Pressable
       onPress={onPress}
       disabled={disabled}
+      accessible={true}
+      accessibilityRole={accessibilityRole}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint || 'Toque duas vezes para abrir'}
+      accessibilityState={{ disabled }}
       className={`
         rounded-2xl
         ${variantStyles[variant]}
@@ -81,6 +92,7 @@ export function PressableCard({
       style={({ pressed }) => ({
         opacity: pressed && !disabled ? 0.9 : 1,
         transform: [{ scale: pressed && !disabled ? 0.98 : 1 }],
+        minHeight: 44,
       })}
     >
       {children}

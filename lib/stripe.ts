@@ -1,4 +1,5 @@
 // Stripe payment utilities
+import { logger } from '../utils/logger';
 
 // Stripe configuration
 const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
@@ -40,7 +41,7 @@ export async function initializeStripe(): Promise<void> {
   // In production, this would initialize the Stripe SDK
   // For now, we just validate the key exists
   if (!STRIPE_PUBLISHABLE_KEY) {
-    console.warn('Stripe publishable key not configured');
+    logger.warn('[Stripe] Publishable key not configured');
   }
 }
 
@@ -75,7 +76,7 @@ export async function createPaymentIntent(
       paymentIntentId: data.paymentIntentId,
     };
   } catch (error) {
-    console.error('Error creating payment intent:', error);
+    logger.error('[Stripe] Error creating payment intent:', error);
     throw error;
   }
 }

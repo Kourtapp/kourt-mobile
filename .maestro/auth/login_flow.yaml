@@ -1,0 +1,49 @@
+# Test: Login Flow
+# Tests the complete login flow with email/password
+
+appId: com.kourt.app
+
+---
+
+# Wait for app to load
+- launchApp
+
+# Verify we're on login screen
+- assertVisible: "KOURT"
+- assertVisible: "Seu app de esportes"
+
+# Verify login form elements
+- assertVisible: "Email"
+- assertVisible: "Senha"
+- assertVisible: "Entrar"
+- assertVisible: "Esqueci minha senha"
+- assertVisible: "ou continue com"
+- assertVisible: "Google"
+- assertVisible: "Apple"
+- assertVisible: "Não tem conta?"
+- assertVisible: "Cadastre-se"
+
+# Test empty form submission
+- tapOn: "Entrar"
+
+# Fill login form
+- tapOn:
+    text: "seu@email.com"
+- inputText: "test@kourt.com"
+- hideKeyboard
+
+- tapOn:
+    text: "••••••••"
+- inputText: "test123456"
+- hideKeyboard
+
+# Tap login button
+- tapOn: "Entrar"
+
+# Wait for navigation (either home or error)
+- extendedWaitUntil:
+    visible:
+      anyOf:
+        - "Início"
+        - "Erro"
+    timeout: 10000

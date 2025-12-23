@@ -1,0 +1,23 @@
+# Maestro Configuration
+# https://maestro.mobile.dev
+
+appId: com.kourt.app
+
+# Environment variables for tests
+env:
+  TEST_EMAIL: "test@kourt.com"
+  TEST_PASSWORD: "test123456"
+  APP_NAME: "Kourt"
+
+# iOS specific settings
+ios:
+  bundleId: com.kourt.app
+
+# Android specific settings
+android:
+  packageName: com.kourt.app
+
+# Default settings
+onFlowStart:
+  - stopApp
+  - launchApp

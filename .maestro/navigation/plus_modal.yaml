@@ -1,0 +1,38 @@
+# Test: Plus Button Modal
+# Tests the center plus button functionality
+
+appId: com.kourt.app
+
+---
+
+- launchApp
+
+# Wait for app to load
+- extendedWaitUntil:
+    visible:
+      anyOf:
+        - "Início"
+        - "KOURT"
+    timeout: 10000
+
+# Skip if on login screen
+- runFlow:
+    when:
+      visible: "Início"
+    commands:
+      # Tap the center plus button (green button)
+      - tapOn:
+          point: "50%,95%"
+
+      # Verify modal opens with options
+      - extendedWaitUntil:
+          visible:
+            anyOf:
+              - "Criar partida"
+              - "Reservar quadra"
+              - "Nova publicação"
+          timeout: 5000
+
+      # Close modal by tapping outside
+      - tapOn:
+          point: "50%,20%"

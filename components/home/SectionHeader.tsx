@@ -1,5 +1,4 @@
-import { View, Text, Pressable } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 
 interface SectionHeaderProps {
     icon?: string;
@@ -9,6 +8,17 @@ interface SectionHeaderProps {
     onActionPress?: () => void;
 }
 
+// Map icon names to emojis
+const ICON_EMOJI_MAP: Record<string, string> = {
+    'map-pin': '📍',
+    'star': '⭐',
+    'thumb-up': '👍',
+    'trending-up': '🔥',
+    'calendar': '📅',
+    'users': '👥',
+    'trophy': '🏆',
+};
+
 export function SectionHeader({
     icon,
     title,
@@ -16,26 +26,70 @@ export function SectionHeader({
     actionText = 'Ver todas',
     onActionPress,
 }: SectionHeaderProps) {
+    const emoji = icon ? ICON_EMOJI_MAP[icon] || icon : null;
+
     return (
-        <View className="px-5 mb-3">
-            <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center gap-2">
-                    {icon && (
-                        <MaterialIcons name={icon as any} size={18} color="#000" />
+        <View style={styles.container}>
+            <View style={styles.headerRow}>
+                <View style={styles.titleRow} accessible={true} accessibilityRole="header">
+                    {emoji && (
+                        <Text style={styles.emoji} accessibilityElementsHidden={true}>{emoji}</Text>
                     )}
-                    <Text className="text-base font-bold text-black">{title}</Text>
+                    <Text style={styles.title}>{title}</Text>
                 </View>
 
                 {onActionPress && (
-                    <Pressable onPress={onActionPress}>
-                        <Text className="text-sm text-neutral-500">{actionText}</Text>
+                    <Pressable
+                        onPress={onActionPress}
+                        accessible={true}
+                        accessibilityRole="button"
+                        accessibilityLabel={actionText}
+                        accessibilityHint={`Toque duas vezes para ver mais itens de ${title}`}
+                        style={{ minHeight: 44, minWidth: 44, justifyContent: 'center' }}
+                    >
+                        <Text style={styles.actionText}>{actionText}</Text>
                     </Pressable>
                 )}
             </View>
 
             {subtitle && (
-                <Text className="text-xs text-neutral-500 mt-1">{subtitle}</Text>
+                <Text style={styles.subtitle} accessibilityRole="text">{subtitle}</Text>
             )}
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        paddingHorizontal: 20,
+        marginBottom: 12,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    titleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    emoji: {
+        fontSize: 22,
+    },
+    title: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#000000',
+    },
+    actionText: {
+        fontSize: 14,
+        color: '#3B82F6',
+        fontWeight: '500',
+    },
+    subtitle: {
+        fontSize: 14,
+        color: '#6B7280',
+        marginTop: 4,
+    },
+});

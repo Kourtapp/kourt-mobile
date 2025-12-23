@@ -1,0 +1,96 @@
+appId: com.kourt.app
+---
+- launchApp:
+      clearState: false
+
+- runFlow:
+      when:
+          visible: "KOURT"
+      commands:
+          # If on login, skip or try to login (assuming logged in for development flow usually)
+          # ideally we should have a reliable way to ensure login state or use a test account
+          - tapOn:
+                id: "email-input"
+          - inputText: "bruno@kourt.app"
+          - tapOn:
+                id: "password-input"
+          - inputText: "123456"
+          - tapOn:
+                id: "login-button"
+          - waitForAnimationToEnd:
+                timeout: 5000
+
+# Ensure we are at Home
+- assertVisible: "Início"
+
+# === 1. Start Match Flow ===
+- tapOn:
+      point: "50%,92%" # Plus Button
+- waitForAnimationToEnd:
+      timeout: 2000
+
+- tapOn: "Registrar Partida"
+- waitForAnimationToEnd:
+      timeout: 3000
+
+# === 2. Live Match Interaction ===
+- assertVisible: "Partida em Andamento" # Title or some unique text on live screen
+- tapOn:
+      id: "add-point-a" # Assuming IDs or text exist, if not we use text
+      optional: true
+# Fallback to tapping area if no IDs
+- tapOn:
+      point: "25%,40%" # Player A area roughly
+- tapOn:
+      point: "75%,40%" # Player B area roughly
+
+# Wait a bit
+- swipe:
+      direction: LEFT # Just some interaction
+
+- tapOn: "Finalizar Partida"
+- waitForAnimationToEnd:
+      timeout: 1000
+
+# Confirm Modal
+- assertVisible: "Deseja realmente finalizar a partida?"
+- tapOn: "Confirmar"
+- waitForAnimationToEnd:
+      timeout: 3000
+
+# === 3. Save Match Screen ===
+- assertVisible: "Salvar Partida"
+- assertVisible: "Como você se sentiu?"
+
+# Enter data
+- tapOn: "Título da partida"
+- inputText: "Maestro Test Match"
+- hideKeyboard
+
+- tapOn: "Salvar Partida" # The bottom button
+- waitForAnimationToEnd:
+      timeout: 5000
+
+# === 4. Post Match Flow ===
+- assertVisible: "Adicionar Fotos" # Step 1 Title
+- tapOn: "Próximo"
+- waitForAnimationToEnd:
+      timeout: 2000
+
+- assertVisible: "Local e Esporte" # Step 2 Title
+- tapOn: "Próximo"
+- waitForAnimationToEnd:
+      timeout: 2000
+
+- assertVisible: "Jogadores" # Step 3 Title
+- tapOn: "Próximo"
+- waitForAnimationToEnd:
+      timeout: 2000
+
+- assertVisible: "Resumo" # Step 4 Title
+- tapOn: "Concluir"
+- waitForAnimationToEnd:
+      timeout: 5000
+
+# === 5. Verify Return to Home ===
+- assertVisible: "Início"

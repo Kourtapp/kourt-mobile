@@ -1,0 +1,6 @@
+-- Seed temporariamente desabilitado devido a UUIDs no formato string ('demo-user-1')
+-- Precisa usar UUIDs válidos (gen_random_uuid() ou formato correto UUID)
+-- TODO: Corrigir e reabilitar
+-- As migrações já incluem dados de teste em:
+-- 20251216171500_seed_mvp.sql
+-- 20251218120000_create_test_users.sql

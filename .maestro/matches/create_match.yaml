@@ -1,0 +1,53 @@
+# Test: Create Match Flow
+# Tests the match creation process
+
+appId: com.kourt.app
+
+---
+
+- launchApp
+
+# Wait for app
+- extendedWaitUntil:
+    visible:
+      anyOf:
+        - "Início"
+        - "KOURT"
+    timeout: 10000
+
+# If logged in
+- runFlow:
+    when:
+      visible: "Início"
+    commands:
+      # Tap center plus button
+      - tapOn:
+          point: "50%,95%"
+
+      # Wait for modal
+      - extendedWaitUntil:
+          visible:
+            anyOf:
+              - "Criar partida"
+              - "Nova partida"
+              - "Reservar"
+          timeout: 5000
+
+      # Select create match option
+      - runFlow:
+          when:
+            visible: "Criar partida"
+          commands:
+            - tapOn: "Criar partida"
+
+            # Wait for create match screen
+            - extendedWaitUntil:
+                visible:
+                  anyOf:
+                    - "Nova Partida"
+                    - "Selecionar esporte"
+                    - "Tipo de partida"
+                timeout: 5000
+
+            # Go back
+            - back

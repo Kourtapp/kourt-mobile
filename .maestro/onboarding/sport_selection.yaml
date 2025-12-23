@@ -1,0 +1,36 @@
+# Test: Sport Selection Screen
+# Tests the sport selection functionality in onboarding
+
+appId: com.kourt.app
+
+---
+
+# Navigate to onboarding sport screen (assuming fresh user)
+- assertVisible: "Qual esporte você joga?"
+- assertVisible: "Passo 1 de 5"
+
+# Verify all sports are present
+- assertVisible: "Beach Tennis"
+- assertVisible: "Padel"
+- assertVisible: "Tennis"
+- assertVisible: "Vôlei"
+- assertVisible: "Futevôlei"
+- assertVisible: "Basquete"
+
+# Test multi-selection
+- tapOn: "Beach Tennis"
+- tapOn: "Padel"
+
+# Verify continue button is enabled after selection
+- assertVisible: "Continuar"
+
+# Deselect one
+- tapOn: "Beach Tennis"
+
+# Continue with only Padel selected
+- tapOn: "Continuar"
+
+# Should navigate to level screen
+- extendedWaitUntil:
+    visible: "Qual seu nível?"
+    timeout: 5000

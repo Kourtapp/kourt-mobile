@@ -16,21 +16,21 @@ import {
   Home,
 } from 'lucide-react-native';
 import { Colors, SPORTS_CONFIG } from '../../constants';
-import { MOCK_COURTS } from '../../mocks/data';
 import { Button, Card } from '../../components/ui';
 
 export default function BookingConfirmedScreen() {
   const router = useRouter();
-  const { courtId, date, time, duration, price } = useLocalSearchParams<{
+  const { courtName, sport, date, time, duration, price } = useLocalSearchParams<{
     courtId: string;
+    courtName: string;
+    sport: string;
     date: string;
     time: string;
     duration: string;
     price: string;
   }>();
 
-  const court = MOCK_COURTS.find((c) => c.id === courtId) || MOCK_COURTS[0];
-  const sportConfig = SPORTS_CONFIG[court.sport as keyof typeof SPORTS_CONFIG];
+  const sportConfig = SPORTS_CONFIG[(sport || 'beach-tennis') as keyof typeof SPORTS_CONFIG];
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
@@ -78,10 +78,10 @@ export default function BookingConfirmedScreen() {
               <Text className="text-2xl">{sportConfig?.emoji}</Text>
             </View>
             <View className="flex-1 ml-4">
-              <Text className="font-bold text-black text-lg">{court.name}</Text>
+              <Text className="font-bold text-black text-lg">{courtName || 'Quadra'}</Text>
               <View className="flex-row items-center mt-1">
                 <MapPin size={14} color={Colors.neutral[500]} />
-                <Text className="ml-1 text-neutral-500">{court.city}</Text>
+                <Text className="ml-1 text-neutral-500">Reserva confirmada</Text>
               </View>
             </View>
           </View>

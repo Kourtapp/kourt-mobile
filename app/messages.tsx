@@ -2,9 +2,10 @@ import React from 'react';
 import { View, Text, FlatList, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, MessageCircle, Edit } from 'lucide-react-native';
+import { ChevronLeft, Edit } from 'lucide-react-native';
 import { Colors } from '../constants';
 import { Avatar } from '../components/ui';
+import { EmptyState } from '../components/ui/EmptyState';
 import { useConversations } from '../hooks/useChat';
 import { Conversation } from '../services/chat.service';
 
@@ -106,17 +107,19 @@ export default function MessagesScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1 }}
         ListEmptyComponent={
-          <View className="flex-1 items-center justify-center py-20">
-            <View className="w-20 h-20 bg-neutral-100 rounded-full items-center justify-center mb-4">
-              <MessageCircle size={40} color={Colors.neutral[400]} />
+          loading ? (
+            <View className="flex-1 items-center justify-center py-20">
+              <Text className="text-lg font-semibold text-neutral-700">
+                Carregando...
+              </Text>
             </View>
-            <Text className="text-lg font-semibold text-neutral-700">
-              {loading ? 'Carregando...' : 'Nenhuma mensagem'}
-            </Text>
-            <Text className="text-neutral-500 mt-1 text-center px-10">
-              Suas conversas aparecerão aqui
-            </Text>
-          </View>
+          ) : (
+            <EmptyState
+              type="noMessages"
+              title="Nenhuma mensagem"
+              description="Suas conversas aparecerão aqui"
+            />
+          )
         }
       />
     </SafeAreaView>

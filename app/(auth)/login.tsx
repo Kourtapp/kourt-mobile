@@ -1,16 +1,18 @@
 import { useState } from 'react';
-import { View, Text, TextInput, Pressable, Alert } from 'react-native';
+import { View, Text, TextInput, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuthStore } from '../../stores/authStore';
+import { Analytics } from '../../services/analyticsService';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
 
-  const { signInWithEmail, signInWithGoogle } = useAuthStore();
+  const { signInWithEmail, signInWithGoogle, signInWithApple } = useAuthStore();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -24,29 +26,50 @@ export default function LoginScreen() {
 
       if (!result.success) {
         Alert.alert('Erro', result.error || 'Erro ao fazer login');
+        Analytics.log('auth_failure', { method: 'email', reason: result.error });
         return;
       }
 
+      Analytics.log('sign_in', { method: 'email' });
+
       // Check if user needs onboarding
-      router.replace('/(tabs)');
-    } catch (error) {
+      const { profile } = useAuthStore.getState();
+      if (profile && !profile.onboarding_completed) {
+        router.replace('/(onboarding)/sport-selection');
+      } else {
+        router.replace('/(tabs)');
+      }
+    } catch {
       Alert.alert('Erro', 'Falha ao fazer login');
+      Analytics.log('auth_failure', { method: 'email', reason: 'unknown' });
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
-    setLoading(true);
+    setSocialLoading('google');
     try {
       const result = await signInWithGoogle();
       if (!result.success) {
-        Alert.alert('Erro', result.error || 'Erro ao fazer login');
-        return;
+        Alert.alert('Erro', result.error || 'Erro ao fazer login com Google');
       }
-      router.replace('/(tabs)');
+      // On success, the auth listener will handle navigation
     } finally {
-      setLoading(false);
+      setSocialLoading(null);
+    }
+  };
+
+  const handleAppleLogin = async () => {
+    setSocialLoading('apple');
+    try {
+      const result = await signInWithApple();
+      if (!result.success) {
+        Alert.alert('Erro', result.error || 'Erro ao fazer login com Apple');
+      }
+      // On success, the auth listener will handle navigation
+    } finally {
+      setSocialLoading(null);
     }
   };
 
@@ -74,6 +97,8 @@ export default function LoginScreen() {
           autoCapitalize="none"
           className="w-full bg-neutral-100 rounded-xl px-4 py-3.5 text-sm text-black mb-4"
           placeholderTextColor="#A3A3A3"
+          textContentType="emailAddress"
+          autoComplete="email"
         />
 
         {/* Senha */}
@@ -86,6 +111,8 @@ export default function LoginScreen() {
             secureTextEntry={!showPassword}
             className="w-full bg-neutral-100 rounded-xl px-4 py-3.5 text-sm text-black pr-12"
             placeholderTextColor="#A3A3A3"
+            textContentType="password"
+            autoComplete="password"
           />
           <Pressable
             onPress={() => setShowPassword(!showPassword)}
@@ -112,8 +139,8 @@ export default function LoginScreen() {
         {/* Botão Entrar */}
         <Pressable
           onPress={handleLogin}
-          disabled={loading}
-          className={`w-full py-4 rounded-2xl mt-6 items-center ${loading ? 'bg-neutral-300' : 'bg-black'
+          disabled={loading || !!socialLoading}
+          className={`w-full py-4 rounded-2xl mt-6 items-center ${loading || !!socialLoading ? 'bg-neutral-300' : 'bg-black'
             }`}
         >
           <Text className="text-white font-semibold text-[15px]">
@@ -135,16 +162,19 @@ export default function LoginScreen() {
         <View className="flex-row gap-3">
           <Pressable
             onPress={handleGoogleLogin}
+            disabled={!!socialLoading}
             className="flex-1 py-3.5 bg-white border border-neutral-200 rounded-xl flex-row items-center justify-center"
           >
-            <MaterialIcons name="g-translate" size={20} color="#000" />
+            {socialLoading === 'google' ? <ActivityIndicator color="#000" /> : <MaterialIcons name="g-translate" size={20} color="#000" />}
             <Text className="ml-2 font-medium text-black">Google</Text>
           </Pressable>
 
           <Pressable
-            className="flex-1 py-3.5 bg-white border border-neutral-200 rounded-xl flex-row items-center justify-center opacity-50"
+            onPress={handleAppleLogin}
+            disabled={!!socialLoading}
+            className="flex-1 py-3.5 bg-white border border-neutral-200 rounded-xl flex-row items-center justify-center"
           >
-            <MaterialIcons name="apple" size={20} color="#000" />
+            {socialLoading === 'apple' ? <ActivityIndicator color="#000" /> : <MaterialIcons name="apple" size={20} color="#000" />}
             <Text className="ml-2 font-medium text-black">Apple</Text>
           </Pressable>
         </View>

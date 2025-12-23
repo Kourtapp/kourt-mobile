@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { chatService, Conversation, Message } from '../services/chat.service';
 import { useAuthStore } from '../stores/authStore';
+import { logger } from '../utils/logger';
 
 export function useConversations() {
   const { session } = useAuthStore();
@@ -174,7 +175,7 @@ export function useUnreadMessagesCount() {
       const unreadCount = await chatService.getTotalUnreadCount(userId);
       setCount(unreadCount);
     } catch (err) {
-      console.error('Error fetching unread count:', err);
+      logger.error('[useChat] Error fetching unread count:', err);
     } finally {
       setLoading(false);
     }

@@ -1,0 +1,96 @@
+appId: com.kourt.app
+---
+- launchApp:
+          clearState: true
+
+# Handle potential logged in state
+- runFlow:
+          when:
+                  visible: "Início"
+          commands:
+                  - tapOn: "Perfil"
+                  - tapOn:
+                            point: "92%,7%" # Settings gear
+                  - tapOn: "Sair"
+                  - tapOn: "Confirmar" # Or "Sair" again if alert
+
+- assertVisible: "KOURT"
+- tapOn:
+          id: "register-button"
+
+# Fill Registration Form
+- assertVisible: "Criar conta"
+- tapOn:
+          id: "name-input"
+- inputText: "Maestro Test User"
+- hideKeyboard
+
+- tapOn:
+          id: "cpf-input"
+- inputText: "11122233344"
+# Random/Invalid CPF accepted for Test User
+- hideKeyboard
+
+- tapOn:
+          id: "birthdate-input"
+- inputText: "01011990"
+- hideKeyboard
+
+- tapOn:
+          id: "email-input"
+# Use a random UUID email to ensure uniqueness
+- inputText: "test-${UUID}@kourt.app"
+- hideKeyboard
+
+- tapOn:
+          id: "phone-input"
+- inputText: "11999999999"
+- hideKeyboard
+
+- tapOn:
+          id: "register-password-input"
+- inputText: "password123"
+- hideKeyboard
+
+- tapOn:
+          id: "terms-checkbox"
+- hideKeyboard
+- tapOn:
+          id: "submit-register"
+
+# Handle optional Verify Email alert if it appears (it leads to login)
+# OR if it goes straight to onboarding (as per code analysis if email verification is mocked/skipped)
+# The code says: if (result.error && includes check email) -> Alert.
+# Else -> router.replace('/(onboarding)/welcome')
+
+# === 2. Onboarding Flow ===
+# - tapOn:
+#           id: "submit-register" # Removed duplicate tap
+
+# Sports Selection
+- extendedWaitUntil:
+          visible: "Bem-vindo ao Kourt!"
+          timeout: 10000
+- tapOn: "COMEÇAR"
+- assertVisible: "Quais esportes você pratica?"
+- tapOn: "Beach Tennis"
+- tapOn: "CONTINUAR"
+
+# Level Selection
+- assertVisible: "Qual seu nível em cada esporte?"
+- tapOn: "Inic." # Beach Tennis
+- tapOn: "CONTINUAR"
+
+# Frequency Selection
+- assertVisible: "Com que frequência você joga?"
+- tapOn: "Ocasionalmente"
+- tapOn: "CONTINUAR"
+
+# Goals Selection
+- assertVisible: "Quais seus objetivos?"
+- tapOn: "Diversão"
+- tapOn: "CONTINUAR"
+
+# === 3. Home Verification ===
+- assertVisible: "Início"
+- assertVisible: "Olá, Maestro" # Assuming name is used

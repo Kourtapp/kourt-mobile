@@ -1,0 +1,207 @@
+# Full MVP Test - All Features
+# Tests Map, Courts, Matches, Social, Profile
+
+appId: com.kourt.app
+
+---
+
+# Launch without clearing state (keep session)
+- launchApp
+
+- waitForAnimationToEnd:
+    timeout: 20000
+
+- takeScreenshot: "full_01_initial"
+
+# Dismiss any dialogs
+- tapOn:
+    text: "OK"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Check if we're on login or home
+- runFlow:
+    when:
+      visible: "KOURT"
+    commands:
+      # If on login, try to login
+      - runFlow:
+          when:
+            visible: "Entrar"
+          commands:
+            - takeScreenshot: "full_02_login_needed"
+            # We can't login without real credentials, skip to end
+
+# === MAIN APP FLOW (if logged in) ===
+- runFlow:
+    when:
+      visible: "Início"
+    commands:
+      - takeScreenshot: "full_03_home"
+
+      # === HOME SCREEN ===
+      - swipe:
+          start: "50%,80%"
+          end: "50%,30%"
+      - takeScreenshot: "full_04_home_scrolled"
+
+      # === MAPA TAB ===
+      - tapOn: "Mapa"
+      - waitForAnimationToEnd:
+          timeout: 10000
+      - takeScreenshot: "full_05_map"
+
+      # Test map interactions
+      - swipe:
+          start: "50%,50%"
+          end: "30%,50%"
+      - takeScreenshot: "full_06_map_panned"
+
+      # === PLUS BUTTON (Create Match/Court) ===
+      - tapOn:
+          point: "50%,92%"
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - takeScreenshot: "full_07_plus_modal"
+
+      # Try to create a match
+      - tapOn:
+          text: "Criar partida"
+          optional: true
+      - tapOn:
+          text: "Nova partida"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - takeScreenshot: "full_08_create_match"
+
+      # Go back
+      - tapOn:
+          point: "8%,7%"
+          optional: true
+      - back
+      - waitForAnimationToEnd:
+          timeout: 2000
+
+      # Open plus again for court
+      - tapOn:
+          point: "50%,92%"
+      - waitForAnimationToEnd:
+          timeout: 3000
+
+      # Try to register court
+      - tapOn:
+          text: "Cadastrar quadra"
+          optional: true
+      - tapOn:
+          text: "Nova quadra"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - takeScreenshot: "full_09_create_court"
+
+      # Go back
+      - back
+      - waitForAnimationToEnd:
+          timeout: 2000
+
+      # === SOCIAL TAB ===
+      - tapOn: "Social"
+      - waitForAnimationToEnd:
+          timeout: 5000
+      - takeScreenshot: "full_10_social"
+
+      # Test Feed
+      - tapOn:
+          text: "Feed"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - takeScreenshot: "full_11_feed"
+
+      # Test Jogadores
+      - tapOn:
+          text: "Jogadores"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - takeScreenshot: "full_12_players"
+
+      # Test Grupos
+      - tapOn:
+          text: "Grupos"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - takeScreenshot: "full_13_groups"
+
+      # Test Torneios
+      - tapOn:
+          text: "Torneios"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - takeScreenshot: "full_14_tournaments"
+
+      # === PERFIL TAB ===
+      - tapOn: "Perfil"
+      - waitForAnimationToEnd:
+          timeout: 5000
+      - takeScreenshot: "full_15_profile"
+
+      # Scroll profile
+      - swipe:
+          start: "50%,80%"
+          end: "50%,30%"
+      - takeScreenshot: "full_16_profile_scrolled"
+
+      # Test settings
+      - tapOn:
+          point: "92%,7%"
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - takeScreenshot: "full_17_settings"
+
+      # Go back
+      - back
+      - waitForAnimationToEnd:
+          timeout: 2000
+
+      # === SEARCH ===
+      - tapOn: "Início"
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - tapOn:
+          text: "Buscar quadras"
+          optional: true
+      - tapOn:
+          text: "Buscar"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - takeScreenshot: "full_18_search"
+
+      # Go back
+      - back
+
+      # === NOTIFICATIONS ===
+      - tapOn:
+          point: "88%,7%"
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - takeScreenshot: "full_19_notifications"
+
+      # Go back
+      - back
+
+      # === CHAT ===
+      - tapOn:
+          point: "78%,7%"
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - takeScreenshot: "full_20_chat"
+
+      # Final
+      - back
+      - takeScreenshot: "full_21_final"

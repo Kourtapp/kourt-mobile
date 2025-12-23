@@ -1,0 +1,66 @@
+appId: com.kourt.app
+---
+# MVP Test 3 FIXED: Create Match with Better Timing
+
+- launchApp
+
+# Login
+- tapOn:
+    id: "email-input"
+- inputText: "maestro@kourt.app"
+- hideKeyboard
+- tapOn:
+    id: "password-input"
+- inputText: "password123"
+- hideKeyboard
+- tapOn:
+    id: "login-button"
+
+- waitForAnimationToEnd
+
+# Wait for home
+- extendedWaitUntil:
+    visible: "São Paulo"
+    timeout: 10000
+
+# Click debug wizard button
+- tapOn:
+    id: "debug-wizard-btn"
+
+# Wait extra time for wizard to fully load
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: "Escolha a modal idade"
+    timeout: 10000
+
+# Step 1: Sport - Make sure UI is ready
+- takeScreenshot: "step1-before-selection"
+
+- tapOn:
+    id: "sport-beach-tennis"
+
+# Wait for selection state to update
+- waitForAnimationToEnd
+
+- takeScreenshot: "step1-after-sport-selected"
+
+# Verify sport was selected before continuing
+- assertVisible:
+    text: "Beach Tennis"
+
+# Click Next
+- tapOn:
+    id: "next-button"
+
+# Give extra time for navigation
+- waitForAnimationToEnd
+
+# Step 2: Location
+- extendedWaitUntil:
+    visible: "Onde será o jogo?"
+    timeout: 10000
+
+- takeScreenshot: "step2-location"
+
+# Success!
+- assertVisible: "Onde será o jogo?"

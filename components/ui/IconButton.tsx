@@ -12,6 +12,9 @@ export interface IconButtonProps {
   loading?: boolean;
   className?: string;
   iconColor?: string;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+  testID?: string;
 }
 
 export function IconButton({
@@ -23,6 +26,9 @@ export function IconButton({
   loading = false,
   className = '',
   iconColor,
+  accessibilityLabel,
+  accessibilityHint,
+  testID,
 }: IconButtonProps) {
   const isDisabled = disabled || loading;
 
@@ -43,8 +49,8 @@ export function IconButton({
   };
 
   const sizeStyles = {
-    sm: 'w-8 h-8',
-    md: 'w-10 h-10',
+    sm: 'w-11 h-11', // Minimum 44pt touch target
+    md: 'w-11 h-11', // Minimum 44pt touch target
     lg: 'w-12 h-12',
   };
 
@@ -71,6 +77,15 @@ export function IconButton({
     <Pressable
       onPress={onPress}
       disabled={isDisabled}
+      testID={testID}
+      accessible={true}
+      accessibilityRole="button"
+      accessibilityLabel={loading ? 'Carregando' : accessibilityLabel || 'Botão'}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{
+        disabled: isDisabled,
+        busy: loading,
+      }}
       className={`
         rounded-full items-center justify-center
         ${isDisabled ? disabledStyles[variant] : variantStyles[variant]}
@@ -85,9 +100,10 @@ export function IconButton({
         <ActivityIndicator
           size="small"
           color={variant === 'primary' || variant === 'danger' ? '#FFFFFF' : Colors.neutral[600]}
+          accessibilityLabel="Carregando"
         />
       ) : (
-        <Icon size={iconSizes[size]} color={getIconColor()} />
+        <Icon size={iconSizes[size]} color={getIconColor()} accessibilityElementsHidden={true} />
       )}
     </Pressable>
   );

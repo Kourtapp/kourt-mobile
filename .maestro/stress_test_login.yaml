@@ -1,0 +1,69 @@
+appId: com.kourt.app
+---
+# 0. Clean Slate
+- launchApp:
+      clearState: true
+
+# 1. Login Flow
+- extendedWaitUntil:
+      visible: "KOURT"
+      timeout: 30000
+- tapOn:
+      id: "email-input"
+- inputText: "bruno"
+- inputText: ".camargo"
+- inputText: "0498"
+- inputText: "@hotmail.com"
+- hideKeyboard
+- tapOn:
+      id: "password-input"
+- inputText: "wsd322fhtrj"
+- hideKeyboard
+- tapOn:
+      id: "login-button"
+
+# 1.1 Handle Potential Onboarding (Sports)
+- runFlow:
+      when:
+          visible: "Quais esportes você pratica?"
+      commands:
+          - tapOn: "Pular"
+
+# 1.2 Handle Potential Onboarding (Welcome)
+- runFlow:
+      when:
+          visible: "Bem-vindo ao Kourt!"
+      commands:
+          - tapOn: "Pular"
+
+# 2. Home Screen Verification
+- runFlow:
+      when:
+          visible: "Permitir que"
+      commands:
+          - tapOn: "Permitir durante o uso do app" # iOS Permission
+
+- extendedWaitUntil:
+      visible: "Buscar quadras, jogadores..." # Search placeholder is always visible
+      timeout: 30000
+
+- assertVisible: "Buscar quadras, jogadores..."
+- assertVisible: "Todos" # Category pill is always visible
+- scroll
+
+# 3. Social Verification
+- tapOn:
+      point: "70%,92%" # Social Tab
+- assertVisible: "Ranking"
+
+# 4. Profile Verification
+- tapOn:
+      point: "90%,92%" # Profile Tab
+- extendedWaitUntil:
+      visible: "Visão Geral"
+      timeout: 20000
+- assertVisible: "Visão Geral"
+- tapOn: "Partidas"
+- tapOn: "Posts"
+- tapOn:
+      point: "10%,92%" # Home Tab

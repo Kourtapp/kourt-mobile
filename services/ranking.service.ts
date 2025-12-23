@@ -1,7 +1,8 @@
 import { supabase } from '../lib/supabase';
 
-// Mock data flag - set to false when Supabase is configured
-const USE_MOCK_DATA = true;
+// Mock data flag - set to false to use Supabase data
+// Falls back to mock data if Supabase query fails or returns empty
+const USE_MOCK_DATA = false;
 
 export interface RankingUser {
   id: string;

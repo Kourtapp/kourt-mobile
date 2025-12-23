@@ -29,13 +29,12 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>kourt</string>
-          <string>com.kourt.app</string>
+          <string>com.googleusercontent.apps.138959893910-6910pim9b6v1r6dsism9suthh65u5p2o</string>
         </array>
       </dict>
     </array>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>72</string>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
     <key>LSMinimumSystemVersion</key>
@@ -54,11 +53,9 @@
       <true/>
     </dict>
     <key>NSCameraUsageDescription</key>
-    <string>Kourt usa a câmera para adicionar fotos.</string>
-    <key>NSFaceIDUsageDescription</key>
-    <string>Allow $(PRODUCT_NAME) to access your Face ID biometric data.</string>
+    <string>Kourt usa a câmera para adicionar fotos de partidas e perfil.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>Kourt usa sua localização para mostrar quadras próximas.</string>
+    <string>Allow $(PRODUCT_NAME) to use your location.</string>
     <key>NSLocationAlwaysUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your location</string>
     <key>NSLocationWhenInUseUsageDescription</key>
@@ -68,13 +65,11 @@
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>Kourt salva fotos de suas partidas.</string>
     <key>NSPhotoLibraryUsageDescription</key>
-    <string>Kourt acessa suas fotos para compartilhar momentos.</string>
+    <string>Kourt acessa suas fotos para compartilhar momentos e atualizar seu perfil.</string>
     <key>NSUserActivityTypes</key>
     <array>
       <string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>
     </array>
-    <key>RCTNewArchEnabled</key>
-    <true/>
     <key>UILaunchStoryboardName</key>
     <string>SplashScreen</string>
     <key>UIRequiredDeviceCapabilities</key>
@@ -89,6 +84,13 @@
     <array>
       <string>UIInterfaceOrientationPortrait</string>
       <string>UIInterfaceOrientationPortraitUpsideDown</string>
+    </array>
+    <key>UISupportedInterfaceOrientations~ipad</key>
+    <array>
+      <string>UIInterfaceOrientationPortrait</string>
+      <string>UIInterfaceOrientationPortraitUpsideDown</string>
+      <string>UIInterfaceOrientationLandscapeLeft</string>
+      <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
     <key>UIUserInterfaceStyle</key>
     <string>Light</string>

@@ -2,7 +2,7 @@ import { View, Text, Pressable, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 interface SportPillsProps {
-    sports: Array<{ id: string; name: string; icon: string }>;
+    sports: { id: string; name: string; icon: string }[];
     selectedSport: string;
     onSelect: (sportId: string) => void;
 }

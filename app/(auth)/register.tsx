@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TextInput, Pressable, Alert, Linking } from 'react-native';
+import { View, Text, TextInput, Pressable, Alert, Linking, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuthStore } from '../../stores/authStore';
@@ -12,8 +12,10 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
 
-  const { signUpWithEmail } = useAuthStore();
+
+  const { signUpWithEmail, signInWithGoogle, signInWithApple } = useAuthStore();
 
   const handleRegister = async () => {
     if (!name || !email || !phone || !password) {
@@ -45,10 +47,38 @@ export default function RegisterScreen() {
         'Conta criada com sucesso! Faça login para continuar.',
         [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
       );
-    } catch (error) {
+    } catch {
       Alert.alert('Erro', 'Falha ao criar conta');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    setSocialLoading('google');
+    try {
+      const result = await signInWithGoogle();
+      if (!result.success) {
+        Alert.alert('Erro', result.error || 'Erro ao fazer login com Google');
+        return;
+      }
+      // On success, the auth listener in the store will redirect
+    } finally {
+      setSocialLoading(null);
+    }
+  };
+
+  const handleAppleSignUp = async () => {
+    setSocialLoading('apple');
+    try {
+      const result = await signInWithApple();
+      if (!result.success) {
+        Alert.alert('Erro', result.error || 'Erro ao fazer login com Apple');
+        return;
+      }
+      // On success, the auth listener in the store will redirect
+    } finally {
+      setSocialLoading(null);
     }
   };
 
@@ -73,6 +103,8 @@ export default function RegisterScreen() {
           placeholder="Seu nome"
           className="w-full bg-neutral-100 rounded-xl px-4 py-3.5 text-sm text-black mb-4"
           placeholderTextColor="#A3A3A3"
+          textContentType="name"
+          autoComplete="name"
         />
 
         {/* Email */}
@@ -85,6 +117,8 @@ export default function RegisterScreen() {
           autoCapitalize="none"
           className="w-full bg-neutral-100 rounded-xl px-4 py-3.5 text-sm text-black mb-4"
           placeholderTextColor="#A3A3A3"
+          textContentType="emailAddress"
+          autoComplete="email"
         />
 
         {/* Telefone */}
@@ -96,6 +130,8 @@ export default function RegisterScreen() {
           keyboardType="phone-pad"
           className="w-full bg-neutral-100 rounded-xl px-4 py-3.5 text-sm text-black mb-4"
           placeholderTextColor="#A3A3A3"
+          textContentType="telephoneNumber"
+          autoComplete="tel"
         />
 
         {/* Senha */}
@@ -108,6 +144,8 @@ export default function RegisterScreen() {
             secureTextEntry={!showPassword}
             className="w-full bg-neutral-100 rounded-xl px-4 py-3.5 text-sm text-black pr-12"
             placeholderTextColor="#A3A3A3"
+            textContentType="newPassword"
+            autoComplete="password-new"
           />
           <Pressable
             onPress={() => setShowPassword(!showPassword)}
@@ -156,14 +194,45 @@ export default function RegisterScreen() {
         {/* Botão Criar Conta */}
         <Pressable
           onPress={handleRegister}
-          disabled={loading}
-          className={`w-full py-4 rounded-2xl items-center ${loading ? 'bg-neutral-300' : 'bg-black'
+          disabled={loading || !!socialLoading}
+          className={`w-full py-4 rounded-2xl items-center ${loading || !!socialLoading ? 'bg-neutral-300' : 'bg-black'
             }`}
         >
           <Text className="text-white font-semibold text-[15px]">
             {loading ? 'CRIANDO CONTA...' : 'CRIAR CONTA'}
           </Text>
         </Pressable>
+      </View>
+
+      {/* Social Login */}
+      <View>
+        {/* Divider */}
+        <View className="flex-row items-center my-6">
+          <View className="flex-1 h-px bg-neutral-200" />
+          <Text className="px-4 text-sm text-neutral-400">ou continue com</Text>
+          <View className="flex-1 h-px bg-neutral-200" />
+        </View>
+
+        {/* Social Buttons */}
+        <View className="flex-row gap-3">
+          <Pressable
+            onPress={handleGoogleSignUp}
+            disabled={!!socialLoading}
+            className="flex-1 py-3.5 bg-white border border-neutral-200 rounded-xl flex-row items-center justify-center"
+          >
+            {socialLoading === 'google' ? <ActivityIndicator color="#000" /> : <MaterialIcons name="g-translate" size={20} color="#000" />}
+            <Text className="ml-2 font-medium text-black">Google</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={handleAppleSignUp}
+            disabled={!!socialLoading}
+            className="flex-1 py-3.5 bg-white border border-neutral-200 rounded-xl flex-row items-center justify-center"
+          >
+            {socialLoading === 'apple' ? <ActivityIndicator color="#000" /> : <MaterialIcons name="apple" size={20} color="#000" />}
+            <Text className="ml-2 font-medium text-black">Apple</Text>
+          </Pressable>
+        </View>
       </View>
 
       {/* Footer */}

@@ -1,0 +1,49 @@
+# Test: Court List and Details
+# Tests viewing courts and their details
+
+appId: com.kourt.app
+
+---
+
+- launchApp
+
+# Wait for app to load
+- extendedWaitUntil:
+    visible:
+      anyOf:
+        - "Início"
+        - "KOURT"
+    timeout: 10000
+
+# If logged in, test courts
+- runFlow:
+    when:
+      visible: "Início"
+    commands:
+      # Look for courts section
+      - scroll:
+          direction: DOWN
+
+      # Find and tap on a court card
+      - extendedWaitUntil:
+          visible:
+            anyOf:
+              - "Quadras perto de você"
+              - "Recomendado"
+              - "Ver mapa"
+          timeout: 5000
+
+      # Tap "Ver mapa" to go to map
+      - runFlow:
+          when:
+            visible: "Ver mapa"
+          commands:
+            - tapOn: "Ver mapa"
+            - extendedWaitUntil:
+                visible:
+                  anyOf:
+                    - "Buscar"
+                    - "Mapa"
+                timeout: 5000
+            # Go back
+            - tapOn: "Início"

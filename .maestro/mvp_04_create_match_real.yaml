@@ -1,0 +1,59 @@
+appId: com.kourt.app
+---
+# MVP Test 3 REAL: Create Match via Menu+
+
+- launchApp
+
+# Login
+- tapOn:
+    id: "email-input"
+- inputText: "maestro@kourt.app"
+- hideKeyboard
+- tapOn:
+    id: "password-input"
+- inputText: "password123"
+- hideKeyboard
+- tapOn:
+    id: "login-button"
+
+- waitForAnimationToEnd
+
+# Wait for home
+- extendedWaitUntil:
+    visible: "Quadras perto de você"
+    timeout: 10000
+
+# Open Menu+ Modal
+- tapOn: "Menu+"
+
+- waitForAnimationToEnd
+
+# Select "Criar Jogo"
+- tapOn:
+    text: ".*Criar.*Jogo.*"
+
+- waitForAnimationToEnd
+
+# Wait for wizard to open
+- extendedWaitUntil:
+    visible: "Escolha a modalidade"
+    timeout: 10000
+
+# Step 1: Sport
+- tapOn:
+    id: "sport-beach-tennis"
+
+- waitForAnimationToEnd
+
+# Click Next
+- tapOn:
+    id: "next-button"
+
+- waitForAnimationToEnd
+
+# Step 2: Location - SUCCESS!
+- extendedWaitUntil:
+    visible: "Onde será o jogo?"
+    timeout: 10000
+
+- assertVisible: "Onde será o jogo?"

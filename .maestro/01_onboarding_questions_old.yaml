@@ -1,0 +1,78 @@
+appId: com.kourt.app
+---
+# Working Onboarding Test - Full Flow
+- launchApp:
+          clearState: true
+
+# Login as Onboarding User
+- tapOn:
+          id: "email-input"
+- inputText: "user_onboarding@kourt.app"
+- hideKeyboard
+- tapOn:
+          id: "password-input"
+- inputText: "password123"
+- hideKeyboard
+- tapOn:
+          id: "login-button"
+
+# Wait for Welcome Screen
+- extendedWaitUntil:
+          visible: "Bem-vindo ao Kourt!"
+          timeout: 10000
+
+# Tap Start button
+- tapOn:
+          id: "start-onboarding-button"
+
+# Wait for navigation
+- waitForAnimationToEnd
+
+# Sports Selection
+- extendedWaitUntil:
+          visible:
+                  id: "beach-tennis"
+          timeout: 10000
+- tapOn:
+          id: "beach-tennis"
+- tapOn:
+          id: "next-button"
+
+# Level Selection
+- waitForAnimationToEnd
+- extendedWaitUntil:
+          visible:
+                  id: "level-beach-tennis-beginner"
+          timeout: 5000
+- tapOn:
+          id: "level-beach-tennis-beginner"
+- tapOn:
+          id: "next-button"
+
+# Frequency Selection
+- waitForAnimationToEnd
+- extendedWaitUntil:
+          visible:
+                  id: "occasionally"
+          timeout: 5000
+- tapOn:
+          id: "occasionally"
+- tapOn:
+          id: "next-button"
+
+# Goals Selection
+- waitForAnimationToEnd
+- extendedWaitUntil:
+          visible:
+                  id: "fun"
+          timeout: 5000
+- tapOn:
+          id: "fun"
+- tapOn:
+          id: "finish-button"
+
+# Should return to Home
+- waitForAnimationToEnd
+- extendedWaitUntil:
+          visible: "Quadras perto de você"
+          timeout: 10000

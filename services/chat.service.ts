@@ -26,83 +26,11 @@ export interface Conversation {
   unread_count: number;
 }
 
-// Mock data for development
-const MOCK_CONVERSATIONS: Conversation[] = [
-  {
-    id: '1',
-    created_at: new Date().toISOString(),
-    participants: [
-      { id: '2', name: 'Carlos Silva', avatar_url: null },
-    ],
-    last_message: {
-      id: '1',
-      conversation_id: '1',
-      sender_id: '2',
-      content: 'E aí, vamos jogar amanhã?',
-      created_at: new Date(Date.now() - 3600000).toISOString(),
-      read: false,
-    },
-    unread_count: 2,
-  },
-  {
-    id: '2',
-    created_at: new Date().toISOString(),
-    participants: [
-      { id: '3', name: 'Ana Santos', avatar_url: null },
-    ],
-    last_message: {
-      id: '2',
-      conversation_id: '2',
-      sender_id: '1',
-      content: 'Combinado! Até lá 👋',
-      created_at: new Date(Date.now() - 86400000).toISOString(),
-      read: true,
-    },
-    unread_count: 0,
-  },
-];
-
-const MOCK_MESSAGES: Message[] = [
-  {
-    id: '1',
-    conversation_id: '1',
-    sender_id: '2',
-    content: 'E aí, tudo bem?',
-    created_at: new Date(Date.now() - 7200000).toISOString(),
-    read: true,
-    sender: { id: '2', name: 'Carlos Silva', avatar_url: null },
-  },
-  {
-    id: '2',
-    conversation_id: '1',
-    sender_id: '1',
-    content: 'Tudo ótimo! E você?',
-    created_at: new Date(Date.now() - 7000000).toISOString(),
-    read: true,
-    sender: { id: '1', name: 'Bruno', avatar_url: null },
-  },
-  {
-    id: '3',
-    conversation_id: '1',
-    sender_id: '2',
-    content: 'E aí, vamos jogar amanhã?',
-    created_at: new Date(Date.now() - 3600000).toISOString(),
-    read: false,
-    sender: { id: '2', name: 'Carlos Silva', avatar_url: null },
-  },
-];
-
-const USE_MOCK_DATA = true;
-
 export const chatService = {
   /**
    * Get all conversations for user
    */
   async getConversations(userId: string): Promise<Conversation[]> {
-    if (USE_MOCK_DATA) {
-      return MOCK_CONVERSATIONS;
-    }
-
     const { data, error } = await supabase
       .from('conversation_participants')
       .select(`
@@ -149,10 +77,6 @@ export const chatService = {
    * Get messages for a conversation
    */
   async getMessages(conversationId: string): Promise<Message[]> {
-    if (USE_MOCK_DATA) {
-      return MOCK_MESSAGES.filter((m) => m.conversation_id === conversationId);
-    }
-
     const { data, error } = await supabase
       .from('messages')
       .select(`
@@ -174,20 +98,6 @@ export const chatService = {
     senderId: string,
     content: string
   ): Promise<Message> {
-    if (USE_MOCK_DATA) {
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        conversation_id: conversationId,
-        sender_id: senderId,
-        content,
-        created_at: new Date().toISOString(),
-        read: false,
-        sender: { id: senderId, name: 'Bruno', avatar_url: null },
-      };
-      MOCK_MESSAGES.push(newMessage);
-      return newMessage;
-    }
-
     const { data, error } = await supabase
       .from('messages')
       .insert({
@@ -212,11 +122,7 @@ export const chatService = {
     userId: string,
     otherUserId: string
   ): Promise<string> {
-    if (USE_MOCK_DATA) {
-      return '1';
-    }
-
-    // Check if conversation exists - get user's conversations first
+    // Check if conversation exists
     const { data: userConvs } = await supabase
       .from('conversation_participants')
       .select('conversation_id')
@@ -258,15 +164,6 @@ export const chatService = {
    * Mark messages as read
    */
   async markAsRead(conversationId: string, userId: string): Promise<void> {
-    if (USE_MOCK_DATA) {
-      MOCK_MESSAGES.forEach((m) => {
-        if (m.conversation_id === conversationId && m.sender_id !== userId) {
-          m.read = true;
-        }
-      });
-      return;
-    }
-
     await (supabase
       .from('messages') as any)
       .update({ read: true })
@@ -293,7 +190,6 @@ export const chatService = {
           filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload) => {
-          // Fetch full message with sender info
           const { data } = await supabase
             .from('messages')
             .select(`
@@ -319,11 +215,6 @@ export const chatService = {
    * Get unread count across all conversations
    */
   async getTotalUnreadCount(userId: string): Promise<number> {
-    if (USE_MOCK_DATA) {
-      return MOCK_CONVERSATIONS.reduce((sum, c) => sum + c.unread_count, 0);
-    }
-
-    // Get user's conversation IDs first
     const { data: userConvs } = await supabase
       .from('conversation_participants')
       .select('conversation_id')

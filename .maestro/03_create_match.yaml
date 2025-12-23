@@ -1,0 +1,72 @@
+appId: com.kourt.app
+---
+- launchApp:
+      clearState: true
+
+# Login Flow
+- tapOn:
+      id: "email-input"
+- inputText: "maestro@kourt.app"
+- hideKeyboard
+- tapOn:
+      id: "password-input"
+- inputText: "password123"
+- hideKeyboard
+- tapOn:
+      id: "login-button"
+
+# Verify Home Screen
+- extendedWaitUntil:
+      visible: "São Paulo"
+      timeout: 10000
+  # Open Wizard via Debug Button
+- tapOn:
+      id: "debug-wizard-btn"
+- extendedWaitUntil:
+      visible: "Escolha a modalidade"
+      timeout: 10000
+- tapOn:
+      id: "sport-beach-tennis"
+- tapOn:
+      id: "next-button"
+
+# Step 2: Location Selection
+- extendedWaitUntil:
+      visible: "Onde será o jogo?"
+      timeout: 10000
+# Default court is already selected
+- tapOn:
+      id: "next-button"
+
+# Step 3: Date & Time
+- extendedWaitUntil:
+      visible: "Quando vai rolar?"
+      timeout: 5000
+- tapOn:
+      id: "next-button"
+
+# Step 4: Details
+- extendedWaitUntil:
+      visible: "Configurações da partida"
+      timeout: 5000
+- tapOn:
+      id: "next-button"
+
+# Step 5: Invite
+- extendedWaitUntil:
+      visible: "Convidar jogadores"
+      timeout: 5000
+- tapOn:
+      id: "skip-invite-button"
+
+# Step 6: Review
+- extendedWaitUntil:
+      visible: "Tudo pronto?"
+      timeout: 5000
+- tapOn:
+      id: "next-button"
+
+# Verify Success / Return to Home
+- extendedWaitUntil:
+      visible: "Quadras perto de você"
+      timeout: 10000

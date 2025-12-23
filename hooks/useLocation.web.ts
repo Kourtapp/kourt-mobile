@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from '../utils/logger';
 
 export interface LocationData {
   latitude: number;
@@ -51,7 +52,7 @@ export function useLocation(): UseLocationResult {
         );
       });
     } catch (err) {
-      console.error('Error requesting location permission:', err);
+      logger.error('[useLocation] Error requesting location permission:', err);
       return false;
     }
   }, []);
@@ -81,7 +82,7 @@ export function useLocation(): UseLocationResult {
           setLoading(false);
         },
         (err) => {
-          console.error('Error getting location:', err);
+          logger.error('[useLocation] Error getting location:', err);
           if (err.code === err.PERMISSION_DENIED) {
             setError('Permissao de localizacao nao concedida');
             setPermissionStatus('denied');
@@ -102,7 +103,7 @@ export function useLocation(): UseLocationResult {
         }
       );
     } catch (err) {
-      console.error('Error getting location:', err);
+      logger.error('[useLocation] Error getting location:', err);
       setError('Nao foi possivel obter sua localizacao');
       setLocation(DEFAULT_LOCATION);
       setLoading(false);
@@ -155,7 +156,7 @@ export function useWatchLocation(): UseLocationResult & { watching: boolean } {
         );
       });
     } catch (err) {
-      console.error('Error requesting location permission:', err);
+      logger.error('[useLocation] Error requesting location permission:', err);
       return false;
     }
   }, []);
@@ -172,7 +173,7 @@ export function useWatchLocation(): UseLocationResult & { watching: boolean } {
         });
       },
       (err) => {
-        console.error('Error refreshing location:', err);
+        logger.error('[useLocation] Error refreshing location:', err);
       }
     );
   }, []);
@@ -209,7 +210,7 @@ export function useWatchLocation(): UseLocationResult & { watching: boolean } {
               });
             },
             (err) => {
-              console.error('Error watching location:', err);
+              logger.error('[useLocation] Error watching location:', err);
             },
             {
               enableHighAccuracy: false,
@@ -220,7 +221,7 @@ export function useWatchLocation(): UseLocationResult & { watching: boolean } {
           setWatching(true);
         },
         (err) => {
-          console.error('Error getting initial location:', err);
+          logger.error('[useLocation] Error getting initial location:', err);
           setError('Permissao de localizacao nao concedida');
           setPermissionStatus('denied');
           setLocation(DEFAULT_LOCATION);

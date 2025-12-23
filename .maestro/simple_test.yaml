@@ -1,0 +1,13 @@
+# Simple Test - Basic app functionality
+appId: com.kourt.app
+
+---
+
+- launchApp
+
+# Wait 15 seconds for app to load
+- extendedWaitUntil:
+    visible: ".*"
+    timeout: 30000
+
+- takeScreenshot: "simple_01"

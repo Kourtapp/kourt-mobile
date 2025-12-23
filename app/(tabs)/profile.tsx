@@ -1,131 +1,78 @@
-import { View, Text, ScrollView, Alert, Linking } from 'react-native';
-import { router } from 'expo-router';
-import { useAuthStore } from '@/stores/authStore';
+import { View, ScrollView, RefreshControl } from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
 import { useUserStore } from '@/stores/useUserStore';
+import { useAuthStore } from '@/stores/authStore';
 
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
-import { MenuItem } from '@/components/profile/MenuItem';
+import { ProfileTabs } from '@/components/profile/ProfileTabs';
+import { OverviewTab } from '@/components/profile/tabs/OverviewTab';
+import { MatchesTab } from '@/components/profile/tabs/MatchesTab';
+import { PostsTab } from '@/components/profile/tabs/PostsTab';
+
+
+const TABS = [
+  { id: 'overview', label: 'Visão Geral' },
+  { id: 'matches', label: 'Partidas' },
+  { id: 'posts', label: 'Posts' },
+];
 
 export default function ProfileScreen() {
-  const { signOut } = useAuthStore();
-  const { profile } = useUserStore();
+  const { session } = useAuthStore();
+  const { profile, fetchProfile, loading } = useUserStore();
+  const [activeTab, setActiveTab] = useState('overview');
 
-  const handleSignOut = () => {
-    Alert.alert(
-      'Sair',
-      'Tem certeza que deseja sair?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Sair',
-          style: 'destructive',
-          onPress: async () => {
-            await signOut();
-            router.replace('/(auth)/login');
-          }
-        }
-      ]
-    );
-  };
+  const loadData = useCallback(() => {
+    if (session?.user?.id) {
+      fetchProfile(session.user.id);
+    }
+  }, [session?.user?.id, fetchProfile]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  if (!profile && loading) {
+    return <View className="flex-1 bg-white" />; // Or a skeleton loader
+  }
 
   return (
     <View className="flex-1 bg-white">
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        stickyHeaderIndices={[1]} // Makes ProfileTabs sticky (after Header)
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={loadData} />}
       >
-        {/* Header Background */}
-        <View className="h-32 bg-neutral-100 mb-12" />
+        {/* Modern Header - Real Data */}
+        <ProfileHeader
+          user={{
+            name: profile?.name || 'Atleta Kourt',
+            username: profile?.email?.split('@')[0] || 'usuario',
+            isVerified: profile?.is_verified || false,
+            avatar: profile?.avatar_url,
+            cover: profile?.cover_url,
+            bio: profile?.bio || 'Sem bio definida.',
+            stats: {
+              followers: profile?.followers_count || 0,
+              following: profile?.following_count || 0,
+              matches: profile?.matches_count || 0,
+            }
+          }}
+        />
 
-        {/* Profile Content */}
-        <View className="-mt-16">
-          <ProfileHeader
-            user={{
-              name: profile?.name || 'Bruno Silva',
-              username: 'brunosilva',
-              isVerified: profile?.is_verified || false,
-              avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=400&auto=format&fit=crop',
-              stats: {
-                matches: profile?.matches_count || 0,
-                wins: profile?.wins || 0,
-                level: profile?.level || 1,
-              }
-            }}
-          />
+        {/* Sticky Tabs */}
+        <ProfileTabs
+          tabs={TABS}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
 
-          {/* Menu Sections */}
-          <View className="px-6">
-            {/* CONTA */}
-            <Text className="text-xs font-bold text-neutral-400 mb-2 mt-6">CONTA</Text>
-            <MenuItem
-              icon="person"
-              label="Editar Perfil"
-              onPress={() => router.push('/settings/edit-profile')}
-            />
-            <MenuItem
-              icon="analytics"
-              label="Atividades"
-              onPress={() => router.push('/profile/activities')}
-            />
-            <MenuItem
-              icon="emoji-events"
-              label="Conquistas"
-              onPress={() => router.push('/achievements')}
-            />
-            <MenuItem
-              icon="credit-card"
-              label="Pagamentos"
-              onPress={() => router.push('/settings/payments')}
-            />
-
-            {/* CONFIGURAÇÕES */}
-            <Text className="text-xs font-bold text-neutral-400 mb-2 mt-6">CONFIGURAÇÕES</Text>
-            <MenuItem
-              icon="lock"
-              label="Segurança"
-              onPress={() => router.push('/settings/security')}
-            />
-            <MenuItem
-              icon="notifications"
-              label="Notificações"
-              onPress={() => router.push('/settings/notifications')}
-            />
-            <MenuItem
-              icon="privacy-tip"
-              label="Privacidade"
-              onPress={() => router.push('/settings/privacy')}
-            />
-            <MenuItem
-              icon="star"
-              label="Kourt PRO"
-              onPress={() => router.push('/settings/subscription')}
-            />
-
-            {/* SUPORTE */}
-            <Text className="text-xs font-bold text-neutral-400 mb-2 mt-6">SUPORTE</Text>
-            <MenuItem
-              icon="help"
-              label="Ajuda"
-              onPress={() => router.push('/settings/help')}
-            />
-            <MenuItem
-              icon="group-add"
-              label="Indicar amigos"
-              onPress={() => router.push('/referral')}
-            />
-            <MenuItem
-              icon="description"
-              label="Termos de uso"
-              onPress={() => Linking.openURL('https://kourt.app/terms')}
-            />
-            <MenuItem
-              icon="logout"
-              label="Sair"
-              onPress={handleSignOut}
-              isDestructive
-            />
-          </View>
+        {/* Tab Content */}
+        <View className="min-h-[500px] bg-white pt-4">
+          {activeTab === 'overview' && <OverviewTab />}
+          {activeTab === 'matches' && <MatchesTab />}
+          {activeTab === 'posts' && <PostsTab />}
         </View>
+
       </ScrollView>
     </View>
   );

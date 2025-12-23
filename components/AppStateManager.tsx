@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppState } from '../hooks/useAppState';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
+import { logger } from '../utils/logger';
 
 export function AppStateManager({ children }: { children: React.ReactNode }) {
     const appState = useAppState();
@@ -13,7 +14,7 @@ export function AppStateManager({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (appState === 'active') {
             // App came to foreground - good place to sync data
-            console.log('App returned to foreground');
+            logger.log('[AppStateManager] App returned to foreground');
         }
     }, [appState]);
 

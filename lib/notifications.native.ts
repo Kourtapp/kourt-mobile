@@ -3,6 +3,7 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { supabase } from './supabase';
 import Constants from 'expo-constants';
+import { logger } from '../utils/logger';
 
 // Configure notification handling
 Notifications.setNotificationHandler({
@@ -40,7 +41,7 @@ class NotificationService {
 
     // Check if running on a physical device
     if (!Device.isDevice) {
-      console.log('Push notifications require a physical device');
+      logger.log('[Notifications] Push notifications require a physical device');
       return null;
     }
 
@@ -54,7 +55,7 @@ class NotificationService {
     }
 
     if (finalStatus !== 'granted') {
-      console.log('Push notification permission not granted');
+      logger.log('[Notifications] Push notification permission not granted');
       return null;
     }
 
@@ -68,9 +69,9 @@ class NotificationService {
       token = tokenData.data;
       this.expoPushToken = token;
 
-      console.log('Expo push token:', token);
+      logger.log('[Notifications] Expo push token:', token);
     } catch (error) {
-      console.error('Error getting push token:', error);
+      logger.error('[Notifications] Error getting push token:', error);
       return null;
     }
 
@@ -132,9 +133,9 @@ class NotificationService {
       );
 
       if (error) throw error;
-      console.log('Push token saved successfully');
+      logger.log('[Notifications] Push token saved successfully');
     } catch (error) {
-      console.error('Error saving push token:', error);
+      logger.error('[Notifications] Error saving push token:', error);
     }
   }
 
@@ -150,9 +151,9 @@ class NotificationService {
         .eq('platform', platform);
 
       if (error) throw error;
-      console.log('Push token removed successfully');
+      logger.log('[Notifications] Push token removed successfully');
     } catch (error) {
-      console.error('Error removing push token:', error);
+      logger.error('[Notifications] Error removing push token:', error);
     }
   }
 
@@ -171,10 +172,10 @@ class NotificationService {
         trigger: notification.trigger,
       });
 
-      console.log('Notification scheduled:', id);
+      logger.log('[Notifications] Notification scheduled:', id);
       return id;
     } catch (error) {
-      console.error('Error scheduling notification:', error);
+      logger.error('[Notifications] Error scheduling notification:', error);
       return null;
     }
   }
@@ -214,9 +215,9 @@ class NotificationService {
   async cancelNotification(notificationId: string): Promise<void> {
     try {
       await Notifications.cancelScheduledNotificationAsync(notificationId);
-      console.log('Notification cancelled:', notificationId);
+      logger.log('[Notifications] Notification cancelled:', notificationId);
     } catch (error) {
-      console.error('Error cancelling notification:', error);
+      logger.error('[Notifications] Error cancelling notification:', error);
     }
   }
 
@@ -224,9 +225,9 @@ class NotificationService {
   async cancelAllNotifications(): Promise<void> {
     try {
       await Notifications.cancelAllScheduledNotificationsAsync();
-      console.log('All notifications cancelled');
+      logger.log('[Notifications] All notifications cancelled');
     } catch (error) {
-      console.error('Error cancelling notifications:', error);
+      logger.error('[Notifications] Error cancelling notifications:', error);
     }
   }
 
@@ -240,7 +241,7 @@ class NotificationService {
     try {
       await Notifications.setBadgeCountAsync(count);
     } catch (error) {
-      console.error('Error setting badge count:', error);
+      logger.error('[Notifications] Error setting badge count:', error);
     }
   }
 
@@ -249,7 +250,7 @@ class NotificationService {
     try {
       return await Notifications.getBadgeCountAsync();
     } catch (error) {
-      console.error('Error getting badge count:', error);
+      logger.error('[Notifications] Error getting badge count:', error);
       return 0;
     }
   }

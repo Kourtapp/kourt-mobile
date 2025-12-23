@@ -1,86 +1,147 @@
-import { View, Text, Image, ScrollView, Pressable } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { useState, useEffect, useCallback } from 'react';
+import { FlatList, RefreshControl, View, ActivityIndicator } from 'react-native';
+import { FeedPost } from './FeedPost';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { supabase } from '@/lib/supabase';
+import { logger } from '@/utils/logger';
 
-const MOCK_POSTS = [
-    {
-        id: '1',
-        user: {
-            name: 'Pedro F.',
-            avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop',
-        },
-        time: '2h',
-        content: 'Partida incrível hoje! Venci de virada 6-4! 🎾🔥',
-        image: 'https://images.unsplash.com/photo-1626248921350-09e8b577f845?q=80&w=800&auto=format&fit=crop',
-        likes: 24,
-        comments: 8,
-    },
-    {
-        id: '2',
-        user: {
-            name: 'Marina S.',
-            avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop',
-        },
-        time: '1d',
-        content: 'Check-in no Beach Arena! Quem mais está aqui? 🏖️',
-        likes: 45,
-        comments: 12,
-    },
-];
+interface Post {
+    id: string;
+    type: string;
+    user: {
+        id: string;
+        name: string;
+        avatar?: string;
+        level?: number;
+    };
+    content?: string;
+    image?: string;
+    likes: number;
+    comments: number;
+    time: string;
+    data?: any;
+}
 
 export function FeedTab() {
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+
+    const loadPosts = useCallback(async () => {
+        try {
+            // First get posts
+            const { data: postsData, error: postsError } = await supabase
+                .from('posts')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(20);
+
+            if (postsError) throw postsError;
+
+            if (!postsData || postsData.length === 0) {
+                setPosts([]);
+                return;
+            }
+
+            // Get unique user IDs
+            const userIds = [...new Set((postsData as any[]).map(p => p.user_id))];
+
+            // Fetch profiles for those users
+            const { data: profilesData } = await supabase
+                .from('profiles')
+                .select('id, full_name, avatar_url, level')
+                .in('id', userIds);
+
+            // Create a map of profiles
+            const profilesMap = new Map(
+                ((profilesData || []) as any[]).map(p => [p.id, p])
+            );
+
+            const formattedPosts = postsData.map((post: any) => {
+                const profile = profilesMap.get(post.user_id) as any;
+                return {
+                    id: post.id,
+                    type: post.type || 'text',
+                    user: {
+                        id: profile?.id || post.user_id,
+                        name: profile?.full_name || 'Usuário',
+                        avatar: profile?.avatar_url,
+                        level: profile?.level || 1,
+                    },
+                    content: post.content,
+                    image: post.image_url,
+                    likes: post.likes_count || 0,
+                    comments: post.comments_count || 0,
+                    time: formatTime(post.created_at),
+                    data: post.metadata,
+                };
+            });
+
+            setPosts(formattedPosts);
+        } catch (error) {
+            logger.error('[FeedTab] Error loading posts:', error);
+            setPosts([]);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        loadPosts();
+    }, [loadPosts]);
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await loadPosts();
+        setRefreshing(false);
+    };
+
+    const formatTime = (dateString: string) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diff = now.getTime() - date.getTime();
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+
+        if (hours < 1) return 'Agora';
+        if (hours < 24) return `${hours}h`;
+        const days = Math.floor(hours / 24);
+        if (days < 7) return `${days}d`;
+        return date.toLocaleDateString('pt-BR');
+    };
+
+    if (loading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 50 }}>
+                <ActivityIndicator size="large" color="#22c55e" />
+            </View>
+        );
+    }
+
+    if (posts.length === 0) {
+        return (
+            <EmptyState
+                type="noPosts"
+                title="Nenhuma publicação ainda"
+                description="Siga jogadores para ver suas publicações"
+            />
+        );
+    }
+
     return (
-        <ScrollView
-            className="flex-1 bg-[#fafafa]"
-            contentContainerStyle={{ padding: 20, gap: 20 }}
+        <FlatList
+            data={posts}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <FeedPost post={item} />}
+            contentContainerStyle={{ paddingBottom: 100 }}
             showsVerticalScrollIndicator={false}
-        >
-            {MOCK_POSTS.map((post) => (
-                <View key={post.id} className="bg-white p-4 rounded-2xl border border-neutral-200">
-                    {/* Header */}
-                    <View className="flex-row items-center gap-3 mb-3">
-                        <Image
-                            source={{ uri: post.user.avatar }}
-                            className="w-10 h-10 rounded-full bg-neutral-200"
-                        />
-                        <View className="flex-1">
-                            <Text className="font-bold text-black">{post.user.name}</Text>
-                            <Text className="text-xs text-neutral-500">{post.time}</Text>
-                        </View>
-                        <Pressable>
-                            <MaterialIcons name="more-horiz" size={20} color="#A3A3A3" />
-                        </Pressable>
-                    </View>
-
-                    {/* Content */}
-                    <Text className="text-sm text-black mb-3 leading-5">
-                        {post.content}
-                    </Text>
-
-                    {/* Image */}
-                    {post.image && (
-                        <Image
-                            source={{ uri: post.image }}
-                            className="w-full h-48 rounded-xl mb-3 bg-neutral-100"
-                            resizeMode="cover"
-                        />
-                    )}
-
-                    {/* Actions */}
-                    <View className="flex-row items-center gap-6 pt-2 border-t border-neutral-100">
-                        <Pressable className="flex-row items-center gap-1.5">
-                            <MaterialIcons name="favorite-border" size={20} color="#525252" />
-                            <Text className="text-xs font-medium text-neutral-600">{post.likes}</Text>
-                        </Pressable>
-                        <Pressable className="flex-row items-center gap-1.5">
-                            <MaterialIcons name="chat-bubble-outline" size={19} color="#525252" />
-                            <Text className="text-xs font-medium text-neutral-600">{post.comments}</Text>
-                        </Pressable>
-                        <Pressable className="flex-row items-center gap-1.5 ml-auto">
-                            <MaterialIcons name="share" size={19} color="#525252" />
-                        </Pressable>
-                    </View>
-                </View>
-            ))}
-        </ScrollView>
+            accessible={false}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    accessibilityLabel="Atualizar feed"
+                />
+            }
+        />
     );
 }

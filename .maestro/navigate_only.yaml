@@ -1,0 +1,153 @@
+# Navigate Only Test - No app relaunch
+# Tests all screens without relaunching (preserves session)
+
+appId: com.kourt.app
+
+---
+
+# DON'T relaunch - just start from current state
+- takeScreenshot: "nav_01_current"
+
+# === MAPA TAB ===
+- tapOn: "Mapa"
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: "nav_02_map"
+
+# Interact with map
+- swipe:
+    start: "50%,50%"
+    end: "30%,50%"
+- takeScreenshot: "nav_03_map_panned"
+
+# === PLUS BUTTON (Create) ===
+- tapOn:
+    point: "50%,92%"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: "nav_04_plus_modal"
+
+# Try create match option
+- tapOn:
+    text: "Criar partida"
+    optional: true
+- tapOn:
+    text: "Nova partida"
+    optional: true
+- tapOn:
+    text: "Partida"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: "nav_05_create_option"
+
+# Go back
+- back
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# === SOCIAL TAB ===
+- tapOn: "Social"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: "nav_06_social"
+
+# Test sub-tabs
+- tapOn:
+    text: "Feed"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: "nav_07_feed"
+
+- tapOn:
+    text: "Jogadores"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: "nav_08_players"
+
+- tapOn:
+    text: "Grupos"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: "nav_09_groups"
+
+- tapOn:
+    text: "Torneios"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: "nav_10_tournaments"
+
+# === PERFIL TAB ===
+- tapOn: "Perfil"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: "nav_11_profile"
+
+# Scroll profile
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+- takeScreenshot: "nav_12_profile_scrolled"
+
+# Settings icon (top right)
+- tapOn:
+    point: "92%,7%"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: "nav_13_settings"
+
+# Scroll settings
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+- takeScreenshot: "nav_14_settings_scrolled"
+
+# Go back
+- back
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# === BACK TO HOME ===
+- tapOn: "Início"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: "nav_15_home"
+
+# Test notifications (bell icon ~88%,7%)
+- tapOn:
+    point: "88%,7%"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: "nav_16_notifications"
+
+- back
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Test chat (message icon ~78%,7%)
+- tapOn:
+    point: "78%,7%"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: "nav_17_messages"
+
+- back
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Test search
+- tapOn:
+    text: "Buscar"
+    optional: true
+- tapOn:
+    point: "50%,17%"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: "nav_18_search"
+
+- back
+- takeScreenshot: "nav_19_final"

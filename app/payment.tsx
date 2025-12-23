@@ -116,9 +116,9 @@ export default function PaymentScreen() {
     setLoading(false);
 
     router.replace({
-      pathname: '/booking-confirmed',
+      pathname: '/booking/confirmed',
       params: { courtId, date, time, duration, price },
-    });
+    } as any);
   };
 
   return (

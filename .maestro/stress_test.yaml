@@ -1,0 +1,59 @@
+appId: com.kourt.app
+---
+# 0. Clean Slate
+- launchApp:
+          clearState: true
+
+# 1. Registration Flow
+- extendedWaitUntil:
+          visible: "KOURT"
+          timeout: 30000
+- hideKeyboard
+- tapOn:
+          id: "register-button"
+- extendedWaitUntil:
+          visible: "Criar conta"
+          timeout: 10000
+
+# 2. Fill Form
+- tapOn: "Seu nome completo"
+- inputText: "Maestro Tester"
+- hideKeyboard
+- tapOn: "000.000.000-00"
+- inputText: "12345678901"
+- hideKeyboard
+- tapOn: "seu@email.com"
+- inputText: ${"user_" + new Date().getTime() + "@test.com"}
+- hideKeyboard
+- tapOn: "(11) 99999-9999"
+- inputText: "11999999999"
+- hideKeyboard
+- scroll
+- tapOn: "Senha"
+- inputText: "12345678Ab"
+- hideKeyboard
+- scroll # Scroll to bottom
+- scroll
+- tapOn:
+          id: "terms-checkbox"
+- tapOn:
+          id: "submit-register"
+
+# 3. Handle Email Verification Alert
+- runFlow:
+          when:
+                  visible: "Conta Criada! 🎉"
+          commands:
+                  - tapOn: "OK"
+                  - assertVisible: "Entrar" # Back to login screen
+
+# 4. Handle Direct Success (bypassed verification)
+- runFlow:
+          when:
+                  visible: "Bem-vindo ao Kourt!"
+          commands:
+                  - tapOn: "Pular"
+                  - assertVisible: "Início"
+# Note: The rest of the test (Profile, Social) is paused
+# because we cannot verify the email automatically in this environment.
+# To test those features, we would need a pre-verified login.

@@ -1,0 +1,34 @@
+# Test: Register Navigation
+# Tests navigation to register screen
+
+appId: com.kourt.app
+
+---
+
+- launchApp
+
+# Verify login screen
+- assertVisible: "KOURT"
+
+# Navigate to register
+- tapOn: "Cadastre-se"
+
+# Wait for register screen
+- extendedWaitUntil:
+    visible: "Criar conta"
+    timeout: 5000
+
+# Verify register screen elements
+- assertVisible: "Nome completo"
+- assertVisible: "Email"
+- assertVisible: "Senha"
+- assertVisible: "Criar conta"
+- assertVisible: "Já tem conta?"
+- assertVisible: "Entrar"
+
+# Navigate back to login
+- tapOn: "Entrar"
+
+# Verify back on login
+- assertVisible: "KOURT"
+- assertVisible: "Seu app de esportes"

@@ -1,0 +1,57 @@
+# Test: Home Screen Sections
+# Tests the home screen sections and interactions
+
+appId: com.kourt.app
+
+---
+
+- launchApp
+
+# Wait for home screen
+- extendedWaitUntil:
+    visible:
+      anyOf:
+        - "Início"
+        - "KOURT"
+    timeout: 10000
+
+# Skip if on login
+- runFlow:
+    when:
+      visible: "Início"
+    commands:
+      # Verify header elements
+      - assertVisible:
+          anyOf:
+            - "São Paulo"
+            - "SP"
+
+      # Scroll down to see sections
+      - scroll:
+          direction: DOWN
+
+      # Look for common sections
+      - assertVisible:
+          anyOf:
+            - "Quadras perto de você"
+            - "Recomendado para você"
+            - "Seu Progresso"
+            - "Ranking"
+
+      # Scroll more
+      - scroll:
+          direction: DOWN
+
+      # Pull to refresh
+      - scroll:
+          direction: UP
+      - scroll:
+          direction: UP
+
+      # Verify refresh works (page should reload)
+      - extendedWaitUntil:
+          visible:
+            anyOf:
+              - "Quadras"
+              - "Recomendado"
+          timeout: 5000

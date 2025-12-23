@@ -2,9 +2,15 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as Sentry from '@sentry/react-native';
+import { logger } from '../utils/logger';
 
 interface Props {
     children: ReactNode;
+    /** Optional fallback component */
+    fallback?: ReactNode;
+    /** Optional callback when error occurs */
+    onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface State {
@@ -23,7 +29,17 @@ export class ErrorBoundary extends Component<Props, State> {
     }
 
     public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-        console.error("Uncaught error:", error, errorInfo);
+        logger.error('[ErrorBoundary] Uncaught error:', { error, errorInfo });
+        this.props.onError?.(error, errorInfo);
+
+        // Send to Sentry
+        Sentry.captureException(error, {
+            contexts: {
+                react: {
+                    componentStack: errorInfo.componentStack,
+                },
+            },
+        });
     }
 
     private handleReset = () => {
@@ -32,15 +48,41 @@ export class ErrorBoundary extends Component<Props, State> {
 
     public render() {
         if (this.state.hasError) {
+            if (this.props.fallback) {
+                return this.props.fallback;
+            }
+
             return (
-                <SafeAreaView style={styles.container}>
+                <SafeAreaView
+                    style={styles.container}
+                    accessible={true}
+                    accessibilityRole="alert"
+                    accessibilityLabel="Erro no aplicativo"
+                >
                     <View style={styles.content}>
-                        <MaterialIcons name="error-outline" size={64} color="#EF4444" />
-                        <Text style={styles.title}>Ops! Algo deu errado.</Text>
+                        <MaterialIcons
+                            name="error-outline"
+                            size={64}
+                            color="#EF4444"
+                            accessibilityElementsHidden={true}
+                        />
+                        <Text
+                            style={styles.title}
+                            accessibilityRole="header"
+                        >
+                            Ops! Algo deu errado.
+                        </Text>
                         <Text style={styles.message}>
                             {this.state.error?.message || 'Ocorreu um erro inesperado.'}
                         </Text>
-                        <Pressable onPress={this.handleReset} style={styles.button}>
+                        <Pressable
+                            onPress={this.handleReset}
+                            style={styles.button}
+                            accessible={true}
+                            accessibilityRole="button"
+                            accessibilityLabel="Tentar novamente"
+                            accessibilityHint="Toca para recarregar a tela"
+                        >
                             <Text style={styles.buttonText}>Tentar Novamente</Text>
                         </Pressable>
                     </View>

@@ -205,6 +205,12 @@ export default function SettingsScreen() {
         {/* Privacy & Security */}
         <SettingSection title="Privacidade e Segurança">
           <SettingItem
+            icon={Shield}
+            iconColor="#3B82F6"
+            label="Gerenciar Consentimentos LGPD"
+            onPress={() => router.push('/settings/privacy-settings')}
+          />
+          <SettingItem
             icon={Lock}
             iconColor={Colors.warning}
             label="Alterar senha"

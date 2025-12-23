@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '../lib/supabase';
 import { Database } from '../types/database.types';
 
 type MatchInsert = Database['public']['Tables']['matches']['Insert'];

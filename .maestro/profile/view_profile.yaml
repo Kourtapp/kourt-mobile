@@ -1,0 +1,59 @@
+# Test: View Profile
+# Tests the profile screen
+
+appId: com.kourt.app
+
+---
+
+- launchApp
+
+# Wait for app
+- extendedWaitUntil:
+    visible:
+      anyOf:
+        - "Início"
+        - "KOURT"
+    timeout: 10000
+
+# If logged in
+- runFlow:
+    when:
+      visible: "Início"
+    commands:
+      # Navigate to Profile tab
+      - tapOn: "Perfil"
+
+      # Wait for profile to load
+      - extendedWaitUntil:
+          visible:
+            anyOf:
+              - "Editar perfil"
+              - "Estatísticas"
+              - "Partidas"
+              - "Posts"
+          timeout: 5000
+
+      # Verify profile elements
+      - assertVisible:
+          anyOf:
+            - "Partidas"
+            - "Seguidores"
+            - "Seguindo"
+
+      # Test edit profile navigation
+      - runFlow:
+          when:
+            visible: "Editar perfil"
+          commands:
+            - tapOn: "Editar perfil"
+            - extendedWaitUntil:
+                visible:
+                  anyOf:
+                    - "Nome"
+                    - "Bio"
+                    - "Salvar"
+                timeout: 5000
+            - back
+
+      # Return to home
+      - tapOn: "Início"

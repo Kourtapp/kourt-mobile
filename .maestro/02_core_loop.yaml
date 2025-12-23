@@ -1,0 +1,48 @@
+appId: com.kourt.app
+---
+- launchApp:
+      clearState: true
+
+# Login Flow
+- tapOn:
+      id: "email-input"
+- inputText: "maestro@kourt.app"
+- hideKeyboard
+- tapOn:
+      id: "password-input"
+- inputText: "password123"
+- hideKeyboard
+- tapOn:
+      id: "login-button"
+
+# Verify Home Screen
+- extendedWaitUntil:
+      visible: "São Paulo"
+      timeout: 10000
+- assertVisible: "KOURT"
+
+# Verify Map Screen
+- tapOn: "Mapa"
+- extendedWaitUntil:
+      visible: "Mapa"
+      timeout: 5000
+
+# Verify Social Screen
+- tapOn: "Social"
+- assertVisible: "Social"
+- tapOn:
+      id: "tab-partidas"
+- extendedWaitUntil:
+      visible: "Nenhuma partida ou check-in encontrado."
+      timeout: 5000
+- tapOn: "Feed"
+- assertVisible: "Feed"
+
+# Verify Profile Screen
+- tapOn: "Perfil" # Now uses accessibility label
+- assertVisible: "Perfil"
+- assertVisible: "Maestro User"
+
+# Return to Home
+- tapOn: "Início"
+- assertVisible: "Quadras perto de você"

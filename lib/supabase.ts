@@ -3,27 +3,28 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../types/supabase';
+import { logger } from '../utils/logger';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase configuration missing. Please set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY');
+  logger.warn('[Supabase] Configuration missing. Please set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY');
 }
 
 // Cross-platform storage adapter for Supabase auth
 const authStorage = Platform.OS === 'web'
   ? {
-      getItem: (key: string) => Promise.resolve(localStorage.getItem(key)),
-      setItem: (key: string, value: string) => {
-        localStorage.setItem(key, value);
-        return Promise.resolve();
-      },
-      removeItem: (key: string) => {
-        localStorage.removeItem(key);
-        return Promise.resolve();
-      },
-    }
+    getItem: (key: string) => Promise.resolve(localStorage.getItem(key)),
+    setItem: (key: string, value: string) => {
+      localStorage.setItem(key, value);
+      return Promise.resolve();
+    },
+    removeItem: (key: string) => {
+      localStorage.removeItem(key);
+      return Promise.resolve();
+    },
+  }
   : AsyncStorage;
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
@@ -50,6 +51,8 @@ export const db = {
   push_tokens: () => supabase.from('push_tokens'),
   rankings: () => supabase.from('rankings'),
   favorites: () => supabase.from('favorites'),
+  matches: () => supabase.from('matches'),
+  match_players: () => supabase.from('match_players'),
 };
 
 // Realtime subscriptions helper

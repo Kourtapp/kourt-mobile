@@ -4,7 +4,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import * as Auth from '../lib/auth';
 import { supabase } from '../lib/supabase';
+import { router } from 'expo-router';
 import type { Session, User } from '@supabase/supabase-js';
+import { logger } from '../utils/logger';
 
 // Create a cross-platform storage adapter
 const createStorage = (): StateStorage => {
@@ -113,6 +115,17 @@ export const useAuthStore = create<AuthState>()(
               isLoading: false,
               isInitialized: true,
             });
+
+            // Check if user needs onboarding
+            const profileData = profile as any;
+            logger.log('[authStore] Auth init - onboarding_completed:', profileData?.onboarding_completed);
+            if (profileData && !profileData.onboarding_completed) {
+              logger.log('[authStore] Redirecting to onboarding...');
+              // Small delay to ensure navigation is ready
+              setTimeout(() => {
+                router.replace('/(onboarding)/sport-selection');
+              }, 100);
+            }
           } else {
             set({
               session: null,
@@ -137,18 +150,27 @@ export const useAuthStore = create<AuthState>()(
                 user: session.user,
                 profile,
               });
+
+              // Navigate based on onboarding status (for social logins)
+              const pData = profile as any;
+              if (pData && !pData.onboarding_completed) {
+                router.replace('/(onboarding)/sport-selection');
+              } else {
+                router.replace('/(tabs)');
+              }
             } else if (event === 'SIGNED_OUT') {
               set({
                 session: null,
                 user: null,
                 profile: null,
               });
+              router.replace('/(auth)/login');
             } else if (event === 'TOKEN_REFRESHED' && session) {
               set({ session });
             }
           });
         } catch (error: any) {
-          console.error('Auth initialization error:', error);
+          logger.error('[authStore] Auth initialization error:', error);
           set({
             error: error.message,
             isLoading: false,
@@ -329,7 +351,7 @@ export const useAuthStore = create<AuthState>()(
             set({ session: data.session });
           }
         } catch (error: any) {
-          console.error('Session refresh error:', error);
+          logger.error('[authStore] Session refresh error:', error);
         }
       },
 

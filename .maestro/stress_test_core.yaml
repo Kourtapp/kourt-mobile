@@ -1,0 +1,121 @@
+appId: com.kourt.app
+tags:
+  - stress
+  - core
+---
+- launchApp:
+    clearState: true
+
+# 1. Login Flow
+- runFlow:
+    when:
+      visible: "KOURT"
+    commands:
+      - tapOn:
+          id: "email-input"
+      - inputText: "bruno"
+      - inputText: ".camargo"
+      - inputText: "0498"
+      - inputText: "@hotmail.com"
+      - hideKeyboard
+      - tapOn:
+          id: "password-input"
+      - inputText: "wsd322fhtrj"
+      - hideKeyboard
+      - tapOn:
+          id: "login-button"
+
+# 2. Handle Onboarding / Permissions (Conditional)
+- runFlow:
+    when:
+      visible: "Quais esportes você pratica?"
+    commands:
+      - tapOn: "Pular"
+- runFlow:
+    when:
+      visible: "Bem-vindo ao Kourt!"
+    commands:
+      - tapOn: "Começar"
+- runFlow:
+    when:
+      visible: "Permitir que"
+    commands:
+      - tapOn: "Permitir durante o uso do app"
+
+# 3. Assert Home
+- assertVisible: "Buscar quadras, jogadores..."
+- runFlow:
+    when:
+      visible: "Falha ao fazer login"
+    commands:
+      - tapOn: "OK"
+
+# 4. Create Match (JOGO)
+- tapOn:
+    id: "tab-plus" # Center Button (Plus)
+- extendedWaitUntil:
+    visible: "Novo"
+    timeout: 10000
+- assertVisible: "Novo"
+- tapOn: "Criar Jogo"
+- assertVisible: "Escolha a modalidade"
+- tapOn: "Continuar" # Sport Default
+- assertVisible: "Onde será o jogo?"
+- tapOn: "Continuar" # Court Default (assuming 1st selected)
+- assertVisible: "Quando vai rolar?"
+- tapOn: "Continuar" # Date Default
+- assertVisible: "Configurações da partida"
+- tapOn: "Continuar" # Details Default
+- assertVisible: "Tudo pronto?"
+- tapOn: "Criar Jogo"
+
+# 5. Invite Players
+- extendedWaitUntil:
+    visible: "Convidar Jogadores" # or "Buscar Jogadores"
+    timeout: 10000
+- assertVisible: "Convidar Jogadores"
+# Invite first friend
+- tapOn: "Convidar"
+- tapOn: "Concluir"
+# Handle Success Screen if any, or return to Home
+- runFlow:
+    when:
+      visible: "Partida criada!" # Guessing success title
+    commands:
+      - tapOn: "Ir para o início" # Guessing button
+# Fallback if no success screen directly logic:
+- extendedWaitUntil:
+    visible: "Buscar quadras, jogadores..."
+    timeout: 10000
+
+# 6. Register Court (Quadra) - Partial
+- tapOn:
+    id: "tab-plus" # Center Button
+- extendedWaitUntil:
+    visible: "Novo"
+    timeout: 5000
+- assertVisible: "Novo"
+- tapOn: "Registrar Quadra"
+- assertVisible: "Cadastre sua quadra" # From index.tsx
+- tapOn: "Quadra Pública" # From index.tsx options
+- assertVisible: "Cadastre sua quadra" # Intro screen title again?
+- tapOn: "Começar"
+# Permission Screen
+- assertVisible: "Localização" # Assuming title part
+- tapOn: "Continuar"
+- runFlow:
+    when:
+      visible: "Permitir que"
+    commands:
+      - tapOn: "Permitir durante o uso do app"
+# Map Screen
+- assertVisible: "Confirmar local"
+- tapOn: "Confirmar local"
+# Photos Instruction
+- assertVisible: "Boas fotos" # Guessing from photos-instruction.tsx
+- tapOn: "Entendi"
+# Mandatory Photos
+- assertVisible: "Fotos Obrigatórias"
+# Stop here as photos are hard to mock
+- tapOn:
+    point: "10%,10%" # Back button top left area roughly or specific ID if I knew it

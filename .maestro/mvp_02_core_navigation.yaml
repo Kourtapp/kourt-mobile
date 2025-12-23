@@ -1,0 +1,66 @@
+appId: com.kourt.app
+---
+# MVP Test 2: Core Navigation
+# Tests: Home → Map → Social (Feed/Partidas) → Profile
+
+- launchApp
+
+# Login
+- tapOn:
+    id: "email-input"
+- inputText: "maestro@kourt.app"
+- hideKeyboard
+- tapOn:
+    id: "password-input"
+- inputText: "password123"
+- hideKeyboard
+- tapOn:
+    id: "login-button"
+
+- waitForAnimationToEnd
+
+# 1. HOME TAB
+- extendedWaitUntil:
+    visible: "Quadras perto de você"
+    timeout: 10000
+- assertVisible: "KOURT"
+- takeScreenshot: "01-home"
+
+# 2. MAP TAB
+- tapOn: "Mapa"
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: "Mapa"
+    timeout: 5000
+- takeScreenshot: "02-map"
+
+# 3. SOCIAL TAB
+- tapOn: "Social"
+- waitForAnimationToEnd
+- assertVisible: "Social"
+- takeScreenshot: "03-social-feed"
+
+# 3a. Social - Partidas subtab
+- tapOn:
+    id: "tab-partidas"
+- waitForAnimationToEnd
+- takeScreenshot: "04-social-partidas"
+
+# 3b. Social - Feed (back)
+- tapOn:
+    id: "tab-feed"
+- waitForAnimationToEnd
+- takeScreenshot: "05-social-feed-back"
+
+# 4. PROFILE TAB
+- tapOn: "Perfil"
+- waitForAnimationToEnd
+- assertVisible: "Perfil"
+- assertVisible: "Maestro User"
+- takeScreenshot: "06-profile"
+
+# 5. Return to HOME
+- tapOn: "Início"
+- waitForAnimationToEnd
+- assertVisible: "Quadras perto de você"
+- takeScreenshot: "07-home-return"

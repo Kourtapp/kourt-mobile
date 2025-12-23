@@ -1,0 +1,45 @@
+# Test: Map View
+# Tests the map tab functionality
+
+appId: com.kourt.app
+
+---
+
+- launchApp
+
+# Wait for app
+- extendedWaitUntil:
+    visible:
+      anyOf:
+        - "Início"
+        - "KOURT"
+    timeout: 10000
+
+# If logged in
+- runFlow:
+    when:
+      visible: "Início"
+    commands:
+      # Navigate to Map tab
+      - tapOn: "Mapa"
+
+      # Wait for map to load
+      - extendedWaitUntil:
+          visible:
+            anyOf:
+              - "Buscar quadras"
+              - "Filtros"
+              - "Lista"
+          timeout: 8000
+
+      # Test search
+      - runFlow:
+          when:
+            visible: "Buscar"
+          commands:
+            - tapOn: "Buscar"
+            - inputText: "Beach Tennis"
+            - hideKeyboard
+
+      # Go back to home
+      - tapOn: "Início"

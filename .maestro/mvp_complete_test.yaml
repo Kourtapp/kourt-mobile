@@ -1,0 +1,179 @@
+# Complete MVP Test - Kourt App
+# Tests all main functionality of the MVP
+
+appId: com.kourt.app
+
+---
+
+- launchApp:
+    clearState: true
+
+# Wait for app to fully load
+- waitForAnimationToEnd:
+    timeout: 30000
+
+- extendedWaitUntil:
+    visible: "KOURT"
+    timeout: 15000
+
+- takeScreenshot: "mvp_01_initial_load"
+
+# === LOGIN SCREEN ===
+- assertVisible: "KOURT"
+- takeScreenshot: "mvp_02_login_screen"
+
+# Navigate to Register screen (Cadastre-se at ~60%,96%)
+- tapOn:
+    point: "60%,96%"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: "mvp_03_register_screen"
+
+# Scroll register form down to see all fields
+- swipe:
+    start: "50%,80%"
+    end: "50%,30%"
+- takeScreenshot: "mvp_04_register_scrolled"
+
+# Go back to login using "Entre" link (~60%,97%)
+- tapOn:
+    point: "60%,97%"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: "mvp_05_back_to_login"
+
+# Navigate to Forgot Password (~80%,62%)
+- tapOn:
+    point: "80%,62%"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: "mvp_06_forgot_password"
+
+# Go back to login using back arrow
+- tapOn:
+    point: "8%,7%"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: "mvp_07_login_again"
+
+# === LOGIN ATTEMPT ===
+# Tap email input field
+- tapOn: "seu@email.com"
+- inputText: "test@kourt.com"
+- hideKeyboard
+
+# Tap password input field
+- tapOn:
+    point: "50%,58%"
+- inputText: "test123456"
+- hideKeyboard
+
+- takeScreenshot: "mvp_08_credentials_filled"
+
+# Tap Entrar button (~50%,68%)
+- tapOn:
+    point: "50%,68%"
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: "mvp_09_after_login"
+
+# Dismiss any error
+- tapOn:
+    text: "OK"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Test Google Sign-In (~25%,85%)
+- tapOn:
+    point: "25%,85%"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: "mvp_10_google_signin"
+
+# Cancel
+- tapOn:
+    text: "Cancelar"
+    optional: true
+- tapOn:
+    point: "50%,30%"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Test Apple Sign-In (~75%,85%)
+- tapOn:
+    point: "75%,85%"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: "mvp_11_apple_signin"
+
+# Cancel
+- tapOn:
+    point: "50%,30%"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+
+- takeScreenshot: "mvp_12_final_login"
+
+# === HOME SCREEN (if logged in) ===
+- runFlow:
+    when:
+      visible: "Início"
+    commands:
+      - takeScreenshot: "mvp_13_home"
+
+      - swipe:
+          start: "50%,80%"
+          end: "50%,20%"
+      - takeScreenshot: "mvp_14_home_scrolled"
+
+      - tapOn: "Mapa"
+      - waitForAnimationToEnd:
+          timeout: 8000
+      - takeScreenshot: "mvp_15_map"
+
+      - tapOn: "Social"
+      - waitForAnimationToEnd:
+          timeout: 5000
+      - takeScreenshot: "mvp_16_social"
+
+      - tapOn:
+          text: "Jogadores"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - takeScreenshot: "mvp_17_players"
+
+      - tapOn:
+          text: "Grupos"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - takeScreenshot: "mvp_18_groups"
+
+      - tapOn: "Perfil"
+      - waitForAnimationToEnd:
+          timeout: 5000
+      - takeScreenshot: "mvp_19_profile"
+
+      - swipe:
+          start: "50%,70%"
+          end: "50%,30%"
+      - takeScreenshot: "mvp_20_profile_scrolled"
+
+      - tapOn: "Início"
+      - waitForAnimationToEnd:
+          timeout: 3000
+
+      - tapOn:
+          point: "50%,92%"
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - takeScreenshot: "mvp_21_plus_modal"
+
+      - tapOn:
+          point: "50%,30%"
+          optional: true
+      - takeScreenshot: "mvp_22_final"

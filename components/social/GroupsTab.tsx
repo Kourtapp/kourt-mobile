@@ -1,4 +1,4 @@
-import { View, Text, Image, ScrollView, Pressable } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const MOCK_GROUPS = [
@@ -41,16 +41,16 @@ export function GroupsTab() {
                         </Text>
                     </View>
 
-                    <Pressable
-                        className={`w-8 h-8 rounded-full items-center justify-center ${group.isMember ? 'bg-neutral-100' : 'bg-black'
-                            }`}
-                    >
-                        <MaterialIcons
-                            name={group.isMember ? "check" : "add"}
-                            size={18}
-                            color={group.isMember ? "#000" : "#FFF"}
-                        />
-                    </Pressable>
+                    <TouchableOpacity>
+                        <View className={`w-8 h-8 rounded-full items-center justify-center ${group.isMember ? 'bg-neutral-100' : 'bg-black'
+                            }`}>
+                            <MaterialIcons
+                                name={group.isMember ? "check" : "add"}
+                                size={18}
+                                color={group.isMember ? "#000" : "#FFF"}
+                            />
+                        </View>
+                    </TouchableOpacity>
                 </View>
             ))}
         </ScrollView>

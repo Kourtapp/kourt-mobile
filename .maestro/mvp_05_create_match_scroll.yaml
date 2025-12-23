@@ -1,0 +1,61 @@
+appId: com.kourt.app
+---
+# MVP Test: Create Match SUCCESS - Using debug wizard button
+
+- launchApp
+
+# Login as Maestro User
+- tapOn:
+    id: "email-input"
+- inputText: "maestro@kourt.app"
+- hideKeyboard
+- tapOn:
+    id: "password-input"
+- inputText: "password123"
+- hideKeyboard
+- tapOn:
+    id: "login-button"
+
+- waitForAnimationToEnd
+
+# Wait for home to load (important!)
+- extendedWaitUntil:
+    visible: "Quadras perto de você"
+    timeout: 10000
+
+# Scroll down to find the debug button (it's below the header)
+- scrollUntilVisible:
+    element:
+      id: "debug-wizard-btn"
+    direction: DOWN
+
+# Click the debug wizard button
+- tapOn:
+    id: "debug-wizard-btn"
+
+- waitForAnimationToEnd
+
+# Wizard should open - Step 1
+- extendedWaitUntil:
+    visible: "Escolha a modalidade"
+    timeout: 10000
+
+# Select Beach Tennis
+- tapOn:
+    id: "sport-beach-tennis"
+
+- waitForAnimationToEnd
+
+# Click Next
+- tapOn:
+    id: "next-button"
+
+- waitForAnimationToEnd
+
+# Step 2 should appear
+- extendedWaitUntil:
+    visible: "Onde será o jogo?"
+    timeout: 10000
+
+# SUCCESS!
+- assertVisible: "Onde será o jogo?"

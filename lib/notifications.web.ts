@@ -1,4 +1,5 @@
 // Web stub for notifications - notifications are not supported on web
+import { logger } from '../utils/logger';
 
 export interface PushNotificationToken {
   token: string;
@@ -20,20 +21,20 @@ class NotificationService {
   private expoPushToken: string | null = null;
 
   async registerForPushNotifications(): Promise<string | null> {
-    console.log('Push notifications are not supported on web');
+    logger.log('[Notifications] Push notifications are not supported on web');
     return null;
   }
 
   async savePushToken(_userId: string, _token: string): Promise<void> {
-    console.log('Push notifications are not supported on web');
+    logger.log('[Notifications] Push notifications are not supported on web');
   }
 
   async removePushToken(_userId: string): Promise<void> {
-    console.log('Push notifications are not supported on web');
+    logger.log('[Notifications] Push notifications are not supported on web');
   }
 
   async scheduleNotification(_notification: ScheduledNotification): Promise<string | null> {
-    console.log('Push notifications are not supported on web');
+    logger.log('[Notifications] Push notifications are not supported on web');
     return null;
   }
 
@@ -43,16 +44,16 @@ class NotificationService {
     _bookingDate: Date,
     _reminderMinutes: number = 60
   ): Promise<string | null> {
-    console.log('Push notifications are not supported on web');
+    logger.log('[Notifications] Push notifications are not supported on web');
     return null;
   }
 
   async cancelNotification(_notificationId: string): Promise<void> {
-    console.log('Push notifications are not supported on web');
+    logger.log('[Notifications] Push notifications are not supported on web');
   }
 
   async cancelAllNotifications(): Promise<void> {
-    console.log('Push notifications are not supported on web');
+    logger.log('[Notifications] Push notifications are not supported on web');
   }
 
   async getScheduledNotifications(): Promise<any[]> {
@@ -60,7 +61,7 @@ class NotificationService {
   }
 
   async setBadgeCount(_count: number): Promise<void> {
-    console.log('Badge count is not supported on web');
+    logger.log('[Notifications] Badge count is not supported on web');
   }
 
   async getBadgeCount(): Promise<number> {
@@ -68,7 +69,7 @@ class NotificationService {
   }
 
   async sendTestNotification(): Promise<void> {
-    console.log('Test notification - web does not support notifications');
+    logger.log('[Notifications] Test notification - web does not support notifications');
   }
 
   getPushToken(): string | null {

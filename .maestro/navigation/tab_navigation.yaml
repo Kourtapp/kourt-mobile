@@ -1,0 +1,64 @@
+# Test: Tab Navigation
+# Tests navigation between main tabs
+
+appId: com.kourt.app
+
+---
+
+- launchApp
+
+# Wait for home screen (assuming user is logged in)
+- extendedWaitUntil:
+    visible:
+      anyOf:
+        - "Início"
+        - "KOURT"
+    timeout: 10000
+
+# If on login, skip this test
+- runFlow:
+    when:
+      visible: "KOURT"
+    commands:
+      - assertVisible: "KOURT"
+
+# If on home, test navigation
+- runFlow:
+    when:
+      visible: "Início"
+    commands:
+      # Test Map tab
+      - tapOn: "Mapa"
+      - extendedWaitUntil:
+          visible:
+            anyOf:
+              - "Buscar quadras"
+              - "Localização"
+          timeout: 5000
+
+      # Test Social tab
+      - tapOn: "Social"
+      - extendedWaitUntil:
+          visible:
+            anyOf:
+              - "Feed"
+              - "Jogadores"
+              - "Grupos"
+          timeout: 5000
+
+      # Test Profile tab
+      - tapOn: "Perfil"
+      - extendedWaitUntil:
+          visible:
+            anyOf:
+              - "Editar perfil"
+              - "Configurações"
+              - "Estatísticas"
+          timeout: 5000
+
+      # Return to Home
+      - tapOn: "Início"
+      - assertVisible:
+          anyOf:
+            - "Quadras perto"
+            - "Recomendado"

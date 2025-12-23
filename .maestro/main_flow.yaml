@@ -1,0 +1,54 @@
+# Test: Main App Flow
+# Complete test of the main app functionality
+
+appId: com.kourt.app
+
+---
+
+- launchApp:
+    clearState: true
+
+# Give app time to initialize
+- waitForAnimationToEnd:
+    timeout: 20000
+
+# Take initial screenshot
+- takeScreenshot: "01_app_launch"
+
+# Check for login screen
+- runFlow:
+    when:
+      visible: "KOURT"
+    commands:
+      - takeScreenshot: "02_login_screen"
+      - assertVisible: "Email"
+      - assertVisible: "Entrar"
+      - assertVisible: "Cadastre-se"
+
+# Check for home screen (if logged in)
+- runFlow:
+    when:
+      visible: "Início"
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 5000
+      - takeScreenshot: "03_home_screen"
+
+      # Navigate tabs
+      - tapOn: "Mapa"
+      - waitForAnimationToEnd:
+          timeout: 5000
+      - takeScreenshot: "04_map_screen"
+
+      - tapOn: "Social"
+      - waitForAnimationToEnd:
+          timeout: 5000
+      - takeScreenshot: "05_social_screen"
+
+      - tapOn: "Perfil"
+      - waitForAnimationToEnd:
+          timeout: 5000
+      - takeScreenshot: "06_profile_screen"
+
+      - tapOn: "Início"
+      - takeScreenshot: "07_home_final"
