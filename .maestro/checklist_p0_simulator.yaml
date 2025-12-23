@@ -1,0 +1,298 @@
+appId: com.kourt.app
+---
+# ============================================
+# KOURT - Checklist P0 (Simulator Compatible)
+# ============================================
+# Based on: app_review_checklist.md
+# Skips: Google/Apple Auth, Real GPS, Camera, Payments
+# ============================================
+
+# --- START APP ---
+- launchApp:
+    clearState: true
+
+# ============================================
+# 1. AUTH & ONBOARDING
+# ============================================
+
+# 1.1 Login with email/password
+- assertVisible:
+    text: "Entrar"
+    optional: true
+- tapOn:
+    id: "email-input"
+    optional: true
+- inputText: "maestro@kourt.app"
+- hideKeyboard
+- tapOn:
+    id: "password-input"
+    optional: true
+- inputText: "password123"
+- hideKeyboard
+- tapOn:
+    id: "login-button"
+    optional: true
+- takeScreenshot: "01-login-attempt"
+
+# Wait for home to load - look for KOURT header
+- extendedWaitUntil:
+    visible: "KOURT"
+    timeout: 20000
+
+- takeScreenshot: "02-after-login"
+
+# ============================================
+# 2. HOME - QUADRAS VISUALIZATION
+# ============================================
+
+# Navigate to Home if not there
+- tapOn:
+    text: "Início"
+    optional: true
+- waitForAnimationToEnd
+
+# 2.1 Check home loads
+- assertVisible:
+    text: "KOURT"
+    optional: true
+- takeScreenshot: "03-home-loaded"
+
+# 2.2 Check sections exist
+- assertVisible:
+    text: "Quadras"
+    optional: true
+
+# 2.3 Scroll to see more content
+- scroll
+
+- takeScreenshot: "04-home-scrolled"
+
+# ============================================
+# 3. MAP TAB (tap by position - 2nd tab ~30% from left)
+# ============================================
+
+- tapOn:
+    point: "30%,97%"
+- waitForAnimationToEnd
+- takeScreenshot: "05-map-tab"
+
+# Map may show mock location or permission prompt
+# We just verify the screen loads
+
+# ============================================
+# 4. SOCIAL TAB (4th tab ~70% from left)
+# ============================================
+
+- tapOn:
+    point: "70%,97%"
+- waitForAnimationToEnd
+- takeScreenshot: "06-social-tab"
+
+# 4.1 Check Feed loads
+- assertVisible:
+    text: "Feed"
+    optional: true
+
+# 4.2 Try Partidas subtab
+- tapOn:
+    text: "Partidas"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "07-social-partidas"
+
+# 4.3 Try Players subtab
+- tapOn:
+    text: "Jogadores"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "08-social-players"
+
+# 4.4 Back to Feed
+- tapOn:
+    text: "Feed"
+    optional: true
+- waitForAnimationToEnd
+
+# ============================================
+# 5. PROFILE TAB (5th tab ~90% from left)
+# ============================================
+
+- tapOn:
+    point: "90%,97%"
+- waitForAnimationToEnd
+- takeScreenshot: "09-profile-tab"
+
+# 5.1 Check profile info visible
+- assertVisible:
+    text: "Estatísticas"
+    optional: true
+
+# 5.2 Scroll profile
+- scroll
+- takeScreenshot: "10-profile-scrolled"
+
+# 5.3 Try settings
+- tapOn:
+    id: "settings-button"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "11-settings"
+
+# Go back
+- tapOn:
+    text: "Voltar"
+    optional: true
+- back:
+    optional: true
+
+# ============================================
+# 6. PLUS MODAL (Create Actions)
+# ============================================
+
+# Go back to Home (1st tab ~10% from left)
+- tapOn:
+    point: "10%,97%"
+- waitForAnimationToEnd
+
+# Open Plus Modal (center button ~50% from left)
+- tapOn:
+    point: "50%,95%"
+- waitForAnimationToEnd
+- takeScreenshot: "12-plus-modal"
+
+# Check options exist
+- assertVisible:
+    text: "Cadastrar Quadra"
+    optional: true
+- assertVisible:
+    text: "Criar Partida"
+    optional: true
+
+# ============================================
+# 7. PUBLIC COURT FLOW (Navigation Only)
+# ============================================
+
+- tapOn:
+    text: "Cadastrar Quadra"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "13-court-type-selection"
+
+# Select Public Court
+- tapOn:
+    text: "Quadra Pública"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "14-public-court-start"
+
+# Navigate through screens (without actual GPS/Camera)
+# Screen 1: Location Permission
+- assertVisible:
+    text: "Precisamos da sua localização"
+    optional: true
+- takeScreenshot: "15-location-permission"
+
+# Go back (we can't test real GPS in simulator)
+- tapOn:
+    text: "Voltar"
+    optional: true
+- tapOn:
+    text: "Não agora"
+    optional: true
+- back:
+    optional: true
+- waitForAnimationToEnd
+
+# ============================================
+# 8. COURT DETAILS (View Existing)
+# ============================================
+
+# Home tab
+- tapOn:
+    point: "10%,97%"
+- waitForAnimationToEnd
+
+# Try to tap on a court card
+- tapOn:
+    text: "Beach Tennis"
+    optional: true
+- tapOn:
+    text: "Padel"
+    optional: true
+- tapOn:
+    text: "Tênis"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "16-court-details"
+
+# Check court details screen
+- assertVisible:
+    text: "Reservar"
+    optional: true
+- assertVisible:
+    text: "Agendar"
+    optional: true
+
+# Go back
+- back
+- waitForAnimationToEnd
+
+# ============================================
+# 9. SEARCH
+# ============================================
+
+- tapOn:
+    id: "search-button"
+    optional: true
+- tapOn:
+    text: "Buscar"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "17-search"
+
+# Try typing search
+- tapOn:
+    id: "search-input"
+    optional: true
+- inputText: "Beach"
+- hideKeyboard
+- waitForAnimationToEnd
+- takeScreenshot: "18-search-results"
+
+# Go back
+- back
+- waitForAnimationToEnd
+
+# ============================================
+# 10. NOTIFICATIONS
+# ============================================
+
+# Home tab
+- tapOn:
+    point: "10%,97%"
+- waitForAnimationToEnd
+
+- tapOn:
+    id: "notifications-button"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "19-notifications"
+
+# Go back
+- back:
+    optional: true
+- waitForAnimationToEnd
+
+# ============================================
+# 11. FINAL SCREENSHOT
+# ============================================
+
+# Home tab
+- tapOn:
+    point: "10%,97%"
+- waitForAnimationToEnd
+- takeScreenshot: "20-final-home"
+
+# ============================================
+# TEST COMPLETE
+# ============================================

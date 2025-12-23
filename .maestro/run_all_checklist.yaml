@@ -1,0 +1,19 @@
+appId: com.kourt.app
+---
+# ============================================
+# KOURT - RUN ALL CHECKLIST TESTS
+# ============================================
+# This runs P0 and P1 tests in sequence
+# ============================================
+
+# Run P0 (Critical)
+- runFlow: checklist_p0_simulator.yaml
+
+# Small delay between test suites
+- extendedWaitUntil:
+    visible: "anything"
+    timeout: 2000
+    optional: true
+
+# Run P1 (Important)
+- runFlow: checklist_p1_simulator.yaml

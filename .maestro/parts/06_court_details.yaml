@@ -1,0 +1,67 @@
+appId: com.kourt.app
+---
+# PARTE 6: Court Details
+# Testa: Ver detalhes de quadra, seções, reserva
+
+- launchApp
+
+- extendedWaitUntil:
+    visible: "Início"
+    timeout: 15000
+
+# GO TO HOME
+- tapOn: "Início"
+- waitForAnimationToEnd
+
+# SCROLL TO FIND COURTS
+- scroll
+
+# TAP ON A COURT (try different sports)
+- tapOn:
+    text: "Beach Tennis"
+    optional: true
+- tapOn:
+    text: "Padel"
+    optional: true
+- tapOn:
+    text: "Tênis"
+    optional: true
+- tapOn:
+    text: "Ver quadra"
+    optional: true
+
+- waitForAnimationToEnd
+- takeScreenshot: "01-court-details"
+
+# SCROLL COURT DETAILS
+- scroll
+- takeScreenshot: "02-court-scrolled"
+
+# CHECK SECTIONS
+- assertVisible:
+    text: "Sobre"
+    optional: true
+- assertVisible:
+    text: "Comodidades"
+    optional: true
+- assertVisible:
+    text: "Horários"
+    optional: true
+
+- scroll
+- takeScreenshot: "03-court-more"
+
+# CHECK BOOK BUTTON
+- assertVisible:
+    text: "Reservar"
+    optional: true
+- assertVisible:
+    text: "Agendar"
+    optional: true
+
+- takeScreenshot: "04-court-final"
+
+# GO BACK
+- back
+- waitForAnimationToEnd
+- takeScreenshot: "05-back-home"

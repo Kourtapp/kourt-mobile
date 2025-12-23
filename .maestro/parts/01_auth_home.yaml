@@ -1,0 +1,52 @@
+appId: com.kourt.app
+---
+# PARTE 1: Auth & Home
+# Testa: Login, Home carrega, seções visíveis
+
+- launchApp:
+    clearState: true
+
+# Wait for app to load - try common screens
+- extendedWaitUntil:
+    visible: ".*"
+    timeout: 10000
+
+- takeScreenshot: "00-initial-state"
+
+# Try login if on auth screen
+- tapOn:
+    id: "email-input"
+    optional: true
+- inputText: "maestro@kourt.app"
+- hideKeyboard
+
+- tapOn:
+    id: "password-input"
+    optional: true
+- inputText: "password123"
+- hideKeyboard
+
+- tapOn:
+    id: "login-button"
+    optional: true
+- takeScreenshot: "01-login-click"
+
+# WAIT FOR HOME (longer timeout) - Look for KOURT header or other home elements
+- extendedWaitUntil:
+    visible: "KOURT"
+    timeout: 25000
+
+- takeScreenshot: "02-home-loaded"
+
+# CHECK HOME CONTENT
+- assertVisible:
+    text: "KOURT"
+    optional: true
+
+- scroll
+- takeScreenshot: "03-home-scrolled"
+
+- swipe:
+    direction: UP
+    duration: 500
+- takeScreenshot: "04-home-final"

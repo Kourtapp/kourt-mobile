@@ -1,0 +1,39 @@
+appId: com.kourt.app
+---
+# PARTE 2: Tab Navigation
+# Testa: Home → Map → Social → Profile → Home
+
+- launchApp
+
+# Wait for app
+- extendedWaitUntil:
+    visible: "Início"
+    timeout: 15000
+
+# HOME TAB
+- tapOn: "Início"
+- waitForAnimationToEnd
+- takeScreenshot: "01-home-tab"
+
+# MAP TAB
+- tapOn: "Mapa"
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: "Mapa"
+    timeout: 8000
+- takeScreenshot: "02-map-tab"
+
+# SOCIAL TAB
+- tapOn: "Social"
+- waitForAnimationToEnd
+- takeScreenshot: "03-social-tab"
+
+# PROFILE TAB
+- tapOn: "Perfil"
+- waitForAnimationToEnd
+- takeScreenshot: "04-profile-tab"
+
+# BACK TO HOME
+- tapOn: "Início"
+- waitForAnimationToEnd
+- takeScreenshot: "05-back-home"

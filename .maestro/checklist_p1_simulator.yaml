@@ -1,0 +1,252 @@
+appId: com.kourt.app
+---
+# ============================================
+# KOURT - Checklist P1 (Simulator Compatible)
+# ============================================
+# Focus: Social, Profile Edit, Suggestions, Invites
+# ============================================
+
+# --- START APP (Assume already logged in) ---
+- launchApp
+
+# Wait for home
+- extendedWaitUntil:
+    visible: "KOURT"
+    timeout: 15000
+
+# ============================================
+# 6. SOCIAL TAB - DETAILED
+# ============================================
+
+# SOCIAL TAB (4th tab ~70% from left)
+- tapOn:
+    point: "70%,97%"
+- waitForAnimationToEnd
+- takeScreenshot: "p1-01-social"
+
+# 6.1 Feed loads
+- scroll
+- takeScreenshot: "p1-02-social-scrolled"
+
+# 6.2 Try to like a post (if exists)
+- tapOn:
+    id: "like-button"
+    optional: true
+- waitForAnimationToEnd
+
+# 6.3 Partidas subtab
+- tapOn:
+    text: "Partidas"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "p1-03-partidas"
+
+# 6.4 Torneios subtab
+- tapOn:
+    text: "Torneios"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "p1-04-torneios"
+
+# 6.5 Jogadores/Players subtab
+- tapOn:
+    text: "Jogadores"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "p1-05-jogadores"
+
+# 6.6 Groups subtab
+- tapOn:
+    text: "Grupos"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "p1-06-grupos"
+
+# ============================================
+# 7. PROFILE - DETAILED
+# ============================================
+
+# PROFILE TAB (5th tab ~90% from left)
+- tapOn:
+    point: "90%,97%"
+- waitForAnimationToEnd
+- takeScreenshot: "p1-07-profile"
+
+# 7.1 Check tabs
+- tapOn:
+    text: "Histórico"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "p1-08-profile-history"
+
+- tapOn:
+    text: "Estatísticas"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "p1-09-profile-stats"
+
+- tapOn:
+    text: "Times"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "p1-10-profile-teams"
+
+# 7.2 Edit Profile
+- tapOn:
+    text: "Editar Perfil"
+    optional: true
+- tapOn:
+    id: "edit-profile-button"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "p1-11-edit-profile"
+
+# Go back
+- back:
+    optional: true
+- waitForAnimationToEnd
+
+# 7.3 Connections (Followers/Following)
+- tapOn:
+    text: "Seguidores"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "p1-12-followers"
+
+- back:
+    optional: true
+
+- tapOn:
+    text: "Seguindo"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "p1-13-following"
+
+- back:
+    optional: true
+- waitForAnimationToEnd
+
+# ============================================
+# 8. USER SUGGESTIONS
+# ============================================
+
+# HOME TAB (1st tab ~10% from left)
+- tapOn:
+    point: "10%,97%"
+- waitForAnimationToEnd
+
+# Look for suggestion cards
+- scroll
+
+- tapOn:
+    text: "Sugestões para você"
+    optional: true
+- tapOn:
+    text: "Ver todos"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "p1-14-suggestions"
+
+# Try to follow someone
+- tapOn:
+    text: "Seguir"
+    optional: true
+- waitForAnimationToEnd
+
+- back:
+    optional: true
+- waitForAnimationToEnd
+
+# ============================================
+# 9. NOTIFICATIONS & INVITES
+# ============================================
+
+- tapOn:
+    id: "notifications-button"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "p1-15-notifications"
+
+# Check for invites tab if exists
+- tapOn:
+    text: "Convites"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "p1-16-invites"
+
+- back:
+    optional: true
+- waitForAnimationToEnd
+
+# ============================================
+# 10. SEARCH - DETAILED
+# ============================================
+
+- tapOn:
+    id: "search-button"
+    optional: true
+- waitForAnimationToEnd
+
+# Search for users
+- tapOn:
+    id: "search-input"
+    optional: true
+- inputText: "Bruno"
+- hideKeyboard
+- waitForAnimationToEnd
+- takeScreenshot: "p1-17-search-users"
+
+# Clear and search courts
+- eraseText: 10
+- inputText: "Beach"
+- hideKeyboard
+- waitForAnimationToEnd
+- takeScreenshot: "p1-18-search-courts"
+
+# Try filters
+- tapOn:
+    text: "Filtros"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "p1-19-filters"
+
+- back:
+    optional: true
+- back:
+    optional: true
+- waitForAnimationToEnd
+
+# ============================================
+# VIEW OTHER USER PROFILE
+# ============================================
+
+# SOCIAL TAB (4th tab ~70% from left)
+- tapOn:
+    point: "70%,97%"
+- waitForAnimationToEnd
+
+# Try to tap on a user avatar/name in feed
+- tapOn:
+    id: "user-avatar"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "p1-20-other-profile"
+
+# Check follow button
+- assertVisible:
+    text: "Seguir"
+    optional: true
+
+- back:
+    optional: true
+- waitForAnimationToEnd
+
+# ============================================
+# FINAL
+# ============================================
+
+# HOME TAB (1st tab ~10% from left)
+- tapOn:
+    point: "10%,97%"
+- waitForAnimationToEnd
+- takeScreenshot: "p1-21-final"

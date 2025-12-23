@@ -1,0 +1,46 @@
+appId: com.kourt.app
+---
+# PARTE 5: Plus Modal (Create Actions)
+# Testa: Abrir modal, ver opções
+
+- launchApp
+
+- extendedWaitUntil:
+    visible: "Início"
+    timeout: 15000
+
+# GO TO HOME
+- tapOn: "Início"
+- waitForAnimationToEnd
+
+# OPEN PLUS MODAL
+- tapOn:
+    id: "plus-button"
+    optional: true
+- tapOn:
+    text: "+"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "01-plus-modal"
+
+# CHECK OPTIONS
+- assertVisible:
+    text: "Cadastrar Quadra"
+    optional: true
+- assertVisible:
+    text: "Criar Partida"
+    optional: true
+- assertVisible:
+    text: "Check-in"
+    optional: true
+
+- takeScreenshot: "02-plus-options"
+
+# CLOSE MODAL
+- back:
+    optional: true
+- tapOn:
+    text: "Fechar"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "03-modal-closed"

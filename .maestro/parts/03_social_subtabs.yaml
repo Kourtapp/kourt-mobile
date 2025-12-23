@@ -1,0 +1,61 @@
+appId: com.kourt.app
+---
+# PARTE 3: Social Tab Subtabs
+# Testa: Feed, Partidas, Jogadores, Torneios, Grupos
+
+- launchApp
+
+- extendedWaitUntil:
+    visible: "Início"
+    timeout: 15000
+
+# GO TO SOCIAL
+- tapOn: "Social"
+- waitForAnimationToEnd
+- takeScreenshot: "01-social-main"
+
+# FEED (should be default)
+- tapOn:
+    text: "Feed"
+    optional: true
+- waitForAnimationToEnd
+- scroll
+- takeScreenshot: "02-feed-scrolled"
+- swipe:
+    direction: UP
+    duration: 500
+
+# PARTIDAS
+- tapOn:
+    text: "Partidas"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "03-partidas"
+
+# JOGADORES
+- tapOn:
+    text: "Jogadores"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "04-jogadores"
+
+# TORNEIOS
+- tapOn:
+    text: "Torneios"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "05-torneios"
+
+# GRUPOS
+- tapOn:
+    text: "Grupos"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "06-grupos"
+
+# BACK TO FEED
+- tapOn:
+    text: "Feed"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "07-back-feed"

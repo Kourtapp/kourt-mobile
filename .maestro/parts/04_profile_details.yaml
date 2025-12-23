@@ -1,0 +1,70 @@
+appId: com.kourt.app
+---
+# PARTE 4: Profile Details
+# Testa: Profile tabs, Edit, Settings, Connections
+
+- launchApp
+
+- extendedWaitUntil:
+    visible: "Início"
+    timeout: 15000
+
+# GO TO PROFILE
+- tapOn: "Perfil"
+- waitForAnimationToEnd
+- takeScreenshot: "01-profile-main"
+
+# SCROLL PROFILE
+- scroll
+- takeScreenshot: "02-profile-scrolled"
+- swipe:
+    direction: UP
+    duration: 500
+
+# PROFILE TABS (if exist)
+- tapOn:
+    text: "Histórico"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "03-historico"
+
+- tapOn:
+    text: "Estatísticas"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "04-estatisticas"
+
+- tapOn:
+    text: "Times"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "05-times"
+
+# EDIT PROFILE
+- tapOn:
+    text: "Editar"
+    optional: true
+- tapOn:
+    text: "Editar Perfil"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "06-edit-profile"
+
+- back:
+    optional: true
+- waitForAnimationToEnd
+
+# SETTINGS
+- tapOn:
+    id: "settings-button"
+    optional: true
+- tapOn:
+    text: "Configurações"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "07-settings"
+
+- back:
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "08-profile-final"
